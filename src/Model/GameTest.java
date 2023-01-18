@@ -147,8 +147,10 @@ class GameTest {
         var game5 = game4.play(Move.of(10,1));
         assertEquals(game5.human_score,7);
 
-        //before scattering stones : {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
-        assertArrayEquals(game5.board,new int[] {0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1}); //after scattering 5 stones on each of 5 fields
+        //before scattering stones : {5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}
+        var game6 = new Game(new int[]{5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},copy_boardlist,10, 10, 1);
+        var game6_played = game6.play(Move.of(4,-1));
+        assertArrayEquals(game6_played.board,new int[] {5, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1}); //after scattering 5 stones on each of 5 fields
 
 
     }

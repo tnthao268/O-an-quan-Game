@@ -360,19 +360,6 @@ public class Game implements IModel{
 
 
 }
-class Move {
-    int position;
-    int direction;
-
-    //links: -1, rechts:+1
-    private Move(int position, int direction){
-        this.position = position;
-        this.direction = direction;
-    }
-    public static Move of(int position, int direction){return new Move(position,direction);}
-    //public  String toString(){return Integer.toString(position);}
-
-}
 
 //berechnet die Werte der nächsten Node von einem Node, und Logik der Streuung der Steine
     /*int move(Node n) {
