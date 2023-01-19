@@ -29,17 +29,21 @@ public class GameController implements IController{
         this.view = view;
     }
 
-    //mouse_input(int mouseX, int mouseY)
-    public void mouse_input(){
-
-    }
-
-    public void return_choose_direction(){
-        view.choose_direction(game);
-    }
     //drawstepstones?
     public void return_draw_step_stones(){
         view.draw_step_stones(game);
+    }
+
+    public IModel save_computer_move(){
+        return game = view.computer_play(game);
+    }
+
+    public IModel save_human_move_left(){
+        return game = view.human_play_left(game);
+    }
+
+    public IModel save_human_move_right(){
+        return game = view.human_play_right(game);
     }
 
 
@@ -65,6 +69,10 @@ public class GameController implements IController{
     //win()
     public void return_win(){
         view.win(game);
+    }
+
+    public boolean is_empty_field(){
+        return view.field_is_empty(game);
     }
 
 

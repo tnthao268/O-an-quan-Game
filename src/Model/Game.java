@@ -77,12 +77,14 @@ public class Game implements IModel{
         int position;
         int direction;
         int stones_picked;
+
         List<Integer> direction_list = Arrays.asList(-1, 1);
         do{
             position = (player == 1 ? r.nextInt(1,6) : r.nextInt(7,12));
             direction = direction_list.get(r.nextInt(direction_list.size()));
             stones_picked = board[position];} while (stones_picked == 0);
         //player = (int) player_list.get(0); //Spieler = 1 (AI)
+        assert stones_picked != 0: "No stones to choose";
         assert position != 0 && position != 6 : "Not allowed to choose ";
 
         System.out.println("Position :" + position);
@@ -155,6 +157,7 @@ public class Game implements IModel{
         //int[] board = Arrays.copyOf(board, 12); //neues Spielbrett Array für die aktuellen erzeugen
         int score_turn = 0; //Score von diesem Zug
         int stones_picked = board[position];//Anzahl von den Steinen der ausgewählten Quadrate
+        assert stones_picked != 0 : "No stones to play!";
 
         board[position] = 0; // Anzahl der Steine von der ausgewählten Quadrat ist 0 , nachdem die Steine aufgehoben wurden
         tem_board = Arrays.copyOf(board,12);
@@ -162,7 +165,7 @@ public class Game implements IModel{
         boardList.add(tem_board);
         //System.out.println(Arrays.toString(tem_board));
 
-        assert stones_picked != 0 : "No stones to play.";
+
         boolean loses_turn = false; //lose turn after eating
         // wenn lose_turn true ist, verliert der Spieler den Zug
         while (!loses_turn) {
@@ -292,26 +295,6 @@ public class Game implements IModel{
 
     }
 
-    /*
-
-    public void update_score(int[] board, int player1, int AI_score1, int human_score1, int score_turn){
-       if(player1 == 1) {
-                AI_score1 += score_turn;
-                human_score1 = (check_stones_over(player1, board)) ? (human_score1 - 5) : human_score1;
-                player1 = 2;
-            }
-       if(player1 == 2){
-                human_score1 += score_turn;
-                AI_score1 = (check_stones_over(player1, board)) ? (AI_score1 - 5) : AI_score1;
-                player1 = 1;
-            }
-
-        System.out.println("Player 2 score: "+ human_score1);
-        System.out.println("Player 1 score: " + AI_score1);
-        System.out.println("Score turn :" + score_turn);
-    }
-
-     */
 
     /**
      * Check if there are no stones left to play on one side of the board for the current player

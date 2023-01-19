@@ -4,23 +4,51 @@ import Controller.IController;
 import Controller.IView;
 import Model.IModel;
 import Model.Move;
+import clientserver.ClientServerThread;
+import clientserver.GameState;
+import clientserver.MouseInput;
 import processing.core.PApplet;
-import processing.core.PFont;
 import processing.core.PImage;
 
 import java.util.Arrays;
 import java.util.List;
 
   /*problems: ok 1. lam quan stones thay doi theo logic
-                2. graphic thay doi sau khi human choi, cho 1 luc roi cho may tinh choi, graphic up doi
-                3. text: number cua so da
+              ok 2. graphic thay doi sau khi human choi, cho 1 luc roi cho may tinh choi, graphic up doi
+              ok 3. text: number cua so da
                 ok 4. khi ng bam vao o khong co gi hien len tren man hinh kh dc choi,
-                5. graphic rai soi tu tu -> truyen Array List cac array state cua ban co cho Graphic
-                6. BUG Graphic: ben phai van hien ra quan lon (1 hien ra nhu 11)
+              ok 5. graphic rai soi tu tu -> truyen Array List cac array state cua ban co cho Graphic
+               ok 6. BUG Graphic: ben phai van hien ra quan lon (1 hien ra nhu 11)
      */
 
 //abstract ? then 2 views ?
 public class GameView extends PApplet implements IView {
+
+        private ClientServerThread thread;
+
+        private GameState state;
+
+    /**
+     * A lock to avoid confilcts between draw() and ClientServerThread
+     */
+
+       private Object lock = new Object();
+
+       public void setGameState(GameState obj) {
+           synchronized (lock) {
+               this.state = obj;
+           }
+       }
+       public void handleClientInput(MouseInput obj){
+        mouseX = obj.mouseX();
+        mouseY = obj.mouseY();
+       }
+
+
+
+
+
+
 
         private IController controller;
 
@@ -60,14 +88,13 @@ public class GameView extends PApplet implements IView {
 
         Big_stone s1 = new Big_stone(arc_x-30,arc_y+80,30,50);
         Big_stone s2= new Big_stone(arc_x+rect_width+30,arc_y-60,30,50);
-        int THMGreen = color(128, 186, 36);
+
 
         //variable tells for_loop to stop when array in copy_board equals board
         boolean equal = false;
 
         boolean drawsetup = true;
 
-        boolean drawdone = false;
 
         boolean red = false;
 
@@ -92,19 +119,40 @@ public class GameView extends PApplet implements IView {
             background(back_ground);
         }
 
+    public void draw() {
 
-        public void mousePressed() {
+        //drawsetup just one time: start of the game
+        if (drawsetup) {
+            drawSetup();
+            drawsetup = false;
+        }
+
+
+        human_turn();
+
+        controller.return_draw_score();
+
+        controller.return_which_turn();
+
+        //System.out.println("Board is " + Arrays.toString(game.getBoard()));
+
+        controller.return_win();
+    }
+
+
+    public void mousePressed() {
+        if(thread.isServer()) {
 
             //wenn Player auf der Seite gehört zu Computer von dem Spielbrett spielt
-            for (int i: a){
-                if (mouseX > arc_x+dist*i && mouseX < (arc_x+dist*i + stone_5.width)
-                        && mouseY < arc_y && mouseY > (arc_y-stone_5.height)) {
+            for (int i : a) {
+                if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
+                        && mouseY < arc_y && mouseY > (arc_y - stone_5.height)) {
 
                     System.out.println("It is computer side, please play on the other side");
-                    //computer_turn;
+
 
                 }
-                if (mouseX > arc_x+dist*i && mouseX < (arc_x+dist*i + stone_5.width)
+                if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
                         && mouseY > arc_y && mouseY < (arc_y + stone_5.height) && your_turn) {
 
                     has_down = true;
@@ -113,125 +161,137 @@ public class GameView extends PApplet implements IView {
                     circle_red(i);
 
 
-                    //setBlankimage(i); //draw blank image when the user clicked (chooses a stone field)
+                    if (chose_left) {
+                        if (!controller.is_empty_field()) {
+                            controller.save_human_move_left();
 
-                    controller.return_choose_direction();
+                            System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, 1).position + "Direction" + direction);
+                            //System.out.println("Human score = " + human_score);
+                            your_turn = false;
+                            chose_left = false;
+                            equal = false;
+
+                            //draw_step_stones();
+                            controller.return_win();
+                            //which_turn();
+                        } else {
+                            System.out.println("Please do not choose an empty field!");
+                            red = false;
+                            circle_red(i);
+
+                        }
+                    }
+                    if (chose_right) {
+                        if (!controller.is_empty_field()) {
+                            controller.save_human_move_right();
+                            System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, -1).position + "Dir = " + direction);
+                            your_turn = false;
+                            chose_right = false;
+                            equal = false;
+                            //draw_step_stones();
+                            controller.return_win();
+                            //which_turn();
+
+                        } else {
+                            System.out.println("Please do not choose an empty field!");
+                            red = false;
+                            circle_red(i);
+
+                        }
+                    }
                     //System.out.println(Arrays.toString(game.getBoard()));
 
                     colour = color(255);
-
-
                 }
             }
-            if (mouseX<green_arrow.width/2+580 && mouseX>580-green_arrow.width/2 && mouseY > 600-green_arrow.height/2 && mouseY < 600+green_arrow.height/2){
-                direction = -1;
+            if (mouseX < green_arrow.width / 2 + 580 && mouseX > 580 - green_arrow.width / 2 && mouseY > 600 - green_arrow.height / 2 && mouseY < 600 + green_arrow.height / 2) {
+                direction = 1;
                 colour1 = color(128, 186, 36); //green
                 chose_left = true;
                 //text_left_right();
 
 
-
             }
-            if (mouseX<red_arrow.width/2+720 && mouseX>720-red_arrow.width/2 && mouseY > 600-red_arrow.height/2 && mouseY<600+red_arrow.height/2){
-                direction = 1;
+            if (mouseX < red_arrow.width / 2 + 720 && mouseX > 720 - red_arrow.width / 2 && mouseY > 600 - red_arrow.height / 2 && mouseY < 600 + red_arrow.height / 2) {
+                direction = -1;
                 colour2 = color(184, 0, 64); //red
                 chose_right = true;
                 //text_left_right();
 
 
             }
+        } else {
+            thread.send(new MouseInput(mouseX,mouseY));
+        }
 
         }
 
-        public void choose_direction(IModel game){
+        //if chose_left, chose_right
 
-            if (chose_left) {
-                game = game.play(Move.of(i+(5-i)*2+1,1));
-                //human_score = game.getHuman_score();
-                System.out.println("Pos = " + Move.of(i+(5-i)*2+1,1).position + "Direction" + direction);
-                //System.out.println("Human score = " + human_score);
-                your_turn = false;
-                chose_left = false;
-                equal = false;
+        public IModel human_play_left(IModel game){
+            return game.play(Move.of(i+(5-i)*2+1,1));
+        }
 
-                //draw_step_stones();
-                controller.return_win();
-                //which_turn();
+        public IModel human_play_right(IModel game){
+            return game.play(Move.of(i+(5-i)*2+1,-1));
+        }
+
+    /**
+     * Avoid user choosing field without stones
+     * @param game game Object
+     * @return false when field chosen is not empty
+     */
+
+    public boolean field_is_empty(IModel game){
+            if (game.getBoard()[i+(5-i)*2+1] == 0) {
+
+                return true;
             }
-            if (chose_right) {
-
-                game = game.play(Move.of(i+(5-i)*2+1,-1));
-                //human_score = game.getHuman_score();
-                System.out.println("Pos = " + Move.of(i+(5-i)*2+1,-1).position + "Dir = " + direction);
-                your_turn = false;
-                chose_right = false;
-                equal = false;
-                //draw_step_stones();
-                controller.return_win();
-                //which_turn();
-            }
-                
-
-
+            return false;
         }
-        public void draw() {
-
-            //drawsetup just one time: start of the game
-            if (drawsetup) {
-                drawSetup();
-                drawsetup = false;
-            }//cho vao phan setup()
 
 
-            //if(!your_turn) circle_red(i);
 
-
-            human_turn();
-
-            controller.return_draw_score();
-
-            controller.return_which_turn();
-
-            //System.out.println("Board is " + Arrays.toString(game.getBoard()));
-
-            controller.return_win();
-        }
-        PFont font;
-
-
-        // method to draw human_score text
-        public void draw_score(IModel game){
-            font = createFont("Times New Roman", 26);
-            textFont(font);
+    /** Method to draw human_score and computer score text
+     *
+     * @param game game Object
+     */
+    public void draw_score(IModel game){
+            image(blank,450,100);
+            blank.resize(500,50);
             fill(0);
-            text(game.getHuman_score(), 400, 200);
+            textSize(25);
+            text("Computer  score : ", 250, 100);
+            text(game.getAI_score(),450,100);
+
+            image(blank,450,550);
+
+
+            text("Your  score: ", 250, 550);
+            text(game.getHuman_score(), 450, 550);
+    }
+
+    /**
+     * Draw the number of stones on each field.
+     * @param board current state of the board
+     * @param i position on the board
+     */
+
+    public void draw_number_stones(int [] board, int i, boolean up){
+        blank.resize(30,30);
+
+
+        fill(0);
+        if (!up) {
+            image(blank,arc_x + dist * (i - 1) + 24, arc_y + 20);
+            text(String.valueOf(board[i + (5 - i) * 2 + 2]),arc_x + dist * (i - 1) + 10, arc_y + 30 );
+        }
+        else {
+            image(blank,arc_x + dist * (i - 1) + 24, arc_y - arc_r / 2 + 20);
+            text(String.valueOf(board[i]), arc_x + dist * (i - 1) + 10, arc_y - arc_r / 2 + 30);
         }
 
-
-
-
-        String left = "Move left";
-        String right = "Move right";
-        String displayed = "";
-
-        int interval = 2000;
-        int time;
-
-
-
-
-
-
-        // method for text : left or right direction
-
-
-        void text_left_right(){
-            fill(0);
-            text(displayed, 200, 200);
-            if (millis() - time > interval) {
-                displayed = (chose_left) ? left : right;
-            }
-        }
+    }
 
 
         // makes the field chosen turn red/pink
@@ -242,7 +302,7 @@ public class GameView extends PApplet implements IView {
             noStroke();
             // when it is human turn (has_down = true)
             if (has_down) ellipse(arc_x + dist * i + 20, arc_y + 100, 20, 20);
-                // else draw on computer side
+            // else draw on computer side
             else ellipse(arc_x + dist * i + 20, arc_y - 20 , 20, 20);
         }
 
@@ -257,7 +317,7 @@ public class GameView extends PApplet implements IView {
                     circle_red(i);
                     draw_small_stones_down_tem(b);
                     draw_small_stones_up_tem(b);
-                    //delay(3000);
+                    //delay(2000);
                     if (Arrays.equals(b, game.getBoard())) {
                         System.out.println("Equal");
                         equal = true;
@@ -280,6 +340,7 @@ public class GameView extends PApplet implements IView {
             arc(arc_x, arc_y, arc_r, arc_r, HALF_PI, PI + HALF_PI);
             rect(arc_x, rect_y, rect_width, arc_r);
             arc(arc_x + rect_width, arc_y, arc_r, arc_r, PI + HALF_PI, TWO_PI + HALF_PI, CHORD);
+            fill(0);
             line(arc_x, arc_y, arc_x + rect_width, arc_y);
             Stone left = new Stone(green_arrow,580,600);
             //new Stone(red_arrow,red_arrow.width/2-15,red_arrow.height/2+5).display(g);
@@ -289,6 +350,7 @@ public class GameView extends PApplet implements IView {
             right.display(g); //zeigt rechte Pfeil
 
             for (int i = 1; i <= 5; i++) {
+                fill(0);
                 line(arc_x + dist * i, rect_y, arc_x + dist * i, rect_y + arc_r);
                 //ellipse(arc_x-dist/2+dist*i, rect_y +dist/2,20,20);
                 //Steine zeigen
@@ -307,8 +369,8 @@ public class GameView extends PApplet implements IView {
                 //new Stone(stone_5,arc_x-50,arc_y).display(g);
                 textSize(30);
                 fill(0, 0, 0);
-                text(String.valueOf(s_big_stone), arc_x - 80, arc_y );
-                text(String.valueOf(s_big_stone), arc_x + rect_width + 50, arc_y );
+                text(String.valueOf(s_big_stone), arc_x + dist * (0 - 1) + 10, arc_y - arc_r / 2 + 29 );
+                text(String.valueOf(s_big_stone), arc_x + dist * (6 - 1) + 20, arc_y + 25);
             }
             if (has_down) {
                 //new Stone(blank, new_stone_x,new_stone_y).display(g);
@@ -361,17 +423,12 @@ public class GameView extends PApplet implements IView {
 
         public void computer_turn(IModel game) {
             has_down = false;
-            textSize(30);
-            text("Computer plays!", 500,100);
-            Move computer_move;
-            do {
-                computer_move = game.randomMove();
-                //game = game.play(computer_move);
-            } while (game.getPlayer() == 2);
-            game = game.play(computer_move);
-            assert computer_move.position >= 1 && computer_move.position <=5 : "Wrong position for computer!";
-            //System.out.println("Computer pos = " + computer_move.position + "Direction = " + direction);
-            i = computer_move.direction + 1;
+            textSize(25);
+            fill(0,100,100);
+            text("Computer plays!", 520,100);
+
+            controller.save_computer_move();
+
             red = true;
             circle_red(i);
             System.out.println("Your turn.");
@@ -381,13 +438,27 @@ public class GameView extends PApplet implements IView {
 
         }
 
-
-
-
+        public IModel computer_play(IModel game){
+            Move computer_move;
+            do {
+                computer_move = game.randomMove();
+                //game = game.play(computer_move);
+            } while (game.getPlayer() == 2);
+            assert computer_move.position >= 1 && computer_move.position <=5 : "Wrong position for computer!";
+            //System.out.println("Computer pos = " + computer_move.position + "Direction = " + direction);
+            i = computer_move.position - 1;
+            return game.play(computer_move);
+        }
         public void win(IModel game) {
             if(game.isEndgame()) {
-                drawsetup = true;
-                drawSetup();
+                fill(255,100,100);
+                textSize(50);
+                String s = game.getHuman_score() > game.getAI_score() ? "You won!" : "Sorry.Computer won!";
+                String tie = "Tie!";
+                text(s,500,250);
+                if (game.getHuman_score() == game.getAI_score()) text(tie,500,150);
+                //drawsetup = true;
+                //drawSetup();
             }
         }
         void HasPopped_up(int i){
@@ -505,7 +576,7 @@ public class GameView extends PApplet implements IView {
         //b[1],2,3,4,5
 
         /**
-         * Draw images of stones in the 2 "King" fields
+         * Draw images of stones in the 2 "Big Stone" fields
          * @param i position in the board array
          * @param num number of stones from b[i] position
          */
@@ -515,7 +586,7 @@ public class GameView extends PApplet implements IView {
             if (i == 0) {
                 image(img,arc_x- 40, arc_y - 20 , 60,60);
             }
-            if (i == 6) image(img,arc_x + rect_width + 50, arc_y + 20 ,60,60);
+            if (i == 6) image(img,arc_x + rect_width + 70, arc_y + 10 ,60,60);
         }
 
         void draw_small_stones_up_tem(int [] b){
@@ -534,6 +605,7 @@ public class GameView extends PApplet implements IView {
                         set_big_stone_image(i, b, true);
                     }
                 }
+                draw_number_stones(b,i,true);
             }
             System.out.println(Arrays.toString(b));
         }
@@ -553,6 +625,7 @@ public class GameView extends PApplet implements IView {
                         set_big_stone_image(i + (5 - i) * 2 + 2,b,false);
                     }
                 }
+                draw_number_stones(b,i,false);
 
             /*
               if (b[i + (5 - i) * 2+2] > 6) {
