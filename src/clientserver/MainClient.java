@@ -1,9 +1,9 @@
 package clientserver;
 
-import Controller.GameController;
-import Model.Game;
-import Model.IModel;
-import View.GameView;
+import controller.GameController;
+import model.Game;
+import model.IModel;
+import view.GameView;
 import processing.core.PApplet;
 
 

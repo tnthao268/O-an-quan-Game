@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import processing.core.PConstants;
 import processing.core.PGraphics;

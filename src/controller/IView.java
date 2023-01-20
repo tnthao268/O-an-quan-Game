@@ -1,8 +1,6 @@
-package Controller;
+package controller;
 
-import Model.IModel;
-import Model.Move;
-import clientserver.MoveState;
+import model.IModel;
 
 public interface IView {
     //void choose_direction(IModel game);

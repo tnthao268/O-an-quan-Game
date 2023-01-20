@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 public class Test_game {
     public static void main(String[] args){

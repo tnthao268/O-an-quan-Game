@@ -1,13 +1,10 @@
-package View;
+package view;
 
-import Controller.IController;
-import Controller.IView;
-import Model.IModel;
-import Model.Move;
-import clientserver.ClientServerThread;
-import clientserver.GameState;
-import clientserver.MouseInput;
-import clientserver.MoveState;
+import controller.IController;
+import controller.IView;
+import model.IModel;
+import model.Move;
+import clientserver.*;
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -34,7 +31,6 @@ public class GameView extends PApplet implements IView {
 
         private GameState state ;
 
-        private MoveState movestate;
 
     /**
      * A lock to avoid confilcts between draw() and ClientServerThread
@@ -50,11 +46,6 @@ public class GameView extends PApplet implements IView {
            }
        }
 
-       public void setMoveState(MoveState obj){
-           synchronized (lock) {
-               this.movestate = obj;
-           }
-       }
        public void handleClientInput(MouseInput obj){
            mouseX = obj.mouseX();
            mouseY = obj.mouseY();
@@ -478,9 +469,6 @@ public class GameView extends PApplet implements IView {
             fill(0,100,100);
             text("Computer plays!", 520,100);
 
-            movestate = new MoveState(comp_pos,comp_dir);
-            thread.send(movestate);
-
             if(!thread.isServer())controller.save_computer_move();
             else controller.thread_play_computer_move();
 
@@ -499,9 +487,10 @@ public class GameView extends PApplet implements IView {
      * @return play the move of computer
      */
     public IModel thread_computer_move(IModel game){
-        i = movestate.pos - 1;
-        return game.play(Move.of(movestate.pos,movestate.dir));
+        //i = comp_pos - 1;
+        return game.play(Move.of(comp_pos,comp_dir));
     }
+
 
     int comp_pos, comp_dir;
 
@@ -518,13 +507,18 @@ public class GameView extends PApplet implements IView {
                 //game = game.play(computer_move);
             } while (game.getPlayer() == 2);
             assert computer_move.position >= 1 && computer_move.position <=5 : "Wrong position for computer!";
-            comp_pos = computer_move.position;
-            comp_dir = computer_move.direction;
+            thread.send(new CompMove(computer_move.position,computer_move.direction));
 
             //System.out.println("Computer pos = " + computer_move.position + "Direction = " + direction);
             i = computer_move.position - 1;
             return game.play(computer_move);
         }
+
+    public void handleCompMove(CompMove obj){
+        comp_pos = obj.pos();
+        comp_dir = obj.dir();
+
+    }
         public void win(IModel game) {
             if(game.isEndgame()) {
                 fill(255,100,100);

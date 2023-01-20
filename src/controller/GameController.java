@@ -1,9 +1,6 @@
-package Controller;
+package controller;
 
-import Model.Game;
-import Model.IModel;
-import Model.Move;
-import clientserver.MoveState;
+import model.IModel;
 
 public class GameController implements IController{
 

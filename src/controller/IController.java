@@ -1,7 +1,6 @@
-package Controller;
+package controller;
 
-import Model.IModel;
-import Model.Move;
+import model.IModel;
 
 public interface IController {
     //void return_choose_direction();

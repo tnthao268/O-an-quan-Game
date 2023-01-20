@@ -1,11 +1,10 @@
 package clientserver;
 
-import View.GameView;
+import view.GameView;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -166,8 +165,8 @@ public class ClientServerThread extends Thread {
                     if (obj instanceof MouseInput) {
                         view.handleClientInput((MouseInput) obj);
                     }
-                    if(obj instanceof MoveState){
-                        view.setMoveState((MoveState)obj);
+                    if(obj instanceof CompMove){
+                        view.handleCompMove((CompMove)obj);
                     }
                 }
             } catch (IOException e) {
