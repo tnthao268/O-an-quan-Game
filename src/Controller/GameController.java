@@ -3,6 +3,7 @@ package Controller;
 import Model.Game;
 import Model.IModel;
 import Model.Move;
+import clientserver.MoveState;
 
 public class GameController implements IController{
 
@@ -74,6 +75,8 @@ public class GameController implements IController{
     public boolean is_empty_field(){
         return view.field_is_empty(game);
     }
+
+    public IModel thread_play_computer_move(){return view.thread_computer_move(game);}
 
 
 

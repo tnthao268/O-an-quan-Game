@@ -21,6 +21,8 @@ public interface IController {
     IModel save_human_move_right();
     boolean is_empty_field();
 
+    IModel thread_play_computer_move();
+
 
 
 }

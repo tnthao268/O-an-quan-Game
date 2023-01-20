@@ -2,6 +2,7 @@ package Controller;
 
 import Model.IModel;
 import Model.Move;
+import clientserver.MoveState;
 
 public interface IView {
     //void choose_direction(IModel game);
@@ -19,4 +20,6 @@ public interface IView {
     void win(IModel game);
 
     boolean field_is_empty(IModel game);
+
+    IModel thread_computer_move(IModel game);
 }

@@ -166,6 +166,9 @@ public class ClientServerThread extends Thread {
                     if (obj instanceof MouseInput) {
                         view.handleClientInput((MouseInput) obj);
                     }
+                    if(obj instanceof MoveState){
+                        view.setMoveState((MoveState)obj);
+                    }
                 }
             } catch (IOException e) {
                 // Connection lost, try reconnecting.

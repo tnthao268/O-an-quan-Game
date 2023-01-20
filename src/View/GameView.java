@@ -7,6 +7,7 @@ import Model.Move;
 import clientserver.ClientServerThread;
 import clientserver.GameState;
 import clientserver.MouseInput;
+import clientserver.MoveState;
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -23,10 +24,17 @@ import java.util.List;
 
 //abstract ? then 2 views ?
 public class GameView extends PApplet implements IView {
+        private IController controller;
+
+        public void setController(IController controller) {
+        this.controller = controller;
+    }
 
         private ClientServerThread thread;
 
-        private GameState state;
+        private GameState state ;
+
+        private MoveState movestate;
 
     /**
      * A lock to avoid confilcts between draw() and ClientServerThread
@@ -36,25 +44,53 @@ public class GameView extends PApplet implements IView {
 
        public void setGameState(GameState obj) {
            synchronized (lock) {
+               //state.board = controller.getGame().getBoard();
+               //initially state: null
                this.state = obj;
            }
        }
+
+       public void setMoveState(MoveState obj){
+           synchronized (lock) {
+               this.movestate = obj;
+           }
+       }
        public void handleClientInput(MouseInput obj){
-        mouseX = obj.mouseX();
-        mouseY = obj.mouseY();
+           mouseX = obj.mouseX();
+           mouseY = obj.mouseY();
+           execute_mouse(mouseX,mouseY);
        }
 
-
-
-
-
-
-
-        private IController controller;
-
-        public void setController(IController controller) {
-        this.controller = controller;
+    public static GameView newServer(String ip, int port) {
+        var view = new GameView();
+        view.thread = ClientServerThread.newServer(port, view);
+        view.thread.start();
+        return view;
     }
+
+    public static GameView newClient(String ip, int port) {
+        var view = new GameView();
+        view.thread = ClientServerThread.newClient(ip, port, view);
+        view.thread.start();
+        return view;
+    }
+
+    public static GameView newAny(String ip, int port) {
+        var view = new GameView();
+        view.thread = ClientServerThread.newAny(ip, port, view);
+        view.thread.start();
+        return view;
+    }
+
+
+
+
+
+
+
+
+
+
 
 
         boolean AI_turn;
@@ -117,39 +153,56 @@ public class GameView extends PApplet implements IView {
             back_ground.resize(1300,700);
             //red_arrow.resize(80,45);
             background(back_ground);
+            state = new GameState(controller.getGame().getBoard());
         }
 
     public void draw() {
 
-        //drawsetup just one time: start of the game
-        if (drawsetup) {
-            drawSetup();
-            drawsetup = false;
+        synchronized (lock) {
+            if (thread.isConnected() & state != null ) {
+
+
+                //drawsetup just one time: start of the game
+                if (drawsetup) {
+                    drawSetup();
+                    drawsetup = false;
+                }
+
+
+                human_turn();
+
+                controller.return_draw_score();
+
+                controller.return_which_turn();
+
+                    //System.out.println("Board is " + Arrays.toString(game.getBoard()));
+
+                controller.return_win();
+
+
+
+                //thread.send(new MouseInput(mouseX, mouseY));
+                state= new GameState(controller.getGame().getBoard());
+                thread.send(state);
+            }
         }
-
-
-        human_turn();
-
-        controller.return_draw_score();
-
-        controller.return_which_turn();
-
-        //System.out.println("Board is " + Arrays.toString(game.getBoard()));
-
-        controller.return_win();
     }
 
 
     public void mousePressed() {
-        if(thread.isServer()) {
+            thread.send(new MouseInput(mouseX, mouseY));
 
             //wenn Player auf der Seite gehört zu Computer von dem Spielbrett spielt
+            execute_mouse(mouseX,mouseY);
+
+        }
+
+        public void execute_mouse(int mouseX, int mouseY){
             for (int i : a) {
                 if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
                         && mouseY < arc_y && mouseY > (arc_y - stone_5.height)) {
 
                     System.out.println("It is computer side, please play on the other side");
-
 
                 }
                 if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
@@ -220,11 +273,9 @@ public class GameView extends PApplet implements IView {
 
 
             }
-        } else {
-            thread.send(new MouseInput(mouseX,mouseY));
         }
 
-        }
+
 
         //if chose_left, chose_right
 
@@ -244,7 +295,6 @@ public class GameView extends PApplet implements IView {
 
     public boolean field_is_empty(IModel game){
             if (game.getBoard()[i+(5-i)*2+1] == 0) {
-
                 return true;
             }
             return false;
@@ -404,6 +454,7 @@ public class GameView extends PApplet implements IView {
 
         void human_turn(){
             if(!your_turn) {
+                state.board = controller.getGame().getBoard();
                 controller.return_draw_step_stones();
                 System.out.println("Drawed");
             }
@@ -427,7 +478,11 @@ public class GameView extends PApplet implements IView {
             fill(0,100,100);
             text("Computer plays!", 520,100);
 
-            controller.save_computer_move();
+            movestate = new MoveState(comp_pos,comp_dir);
+            thread.send(movestate);
+
+            if(!thread.isServer())controller.save_computer_move();
+            else controller.thread_play_computer_move();
 
             red = true;
             circle_red(i);
@@ -438,13 +493,34 @@ public class GameView extends PApplet implements IView {
 
         }
 
-        public IModel computer_play(IModel game){
+    /**
+     * Play move of computer from another thread (server)
+     * @param game Object game
+     * @return play the move of computer
+     */
+    public IModel thread_computer_move(IModel game){
+        i = movestate.pos - 1;
+        return game.play(Move.of(movestate.pos,movestate.dir));
+    }
+
+    int comp_pos, comp_dir;
+
+    /**
+     * Play the move of computer
+     * @param game Object game
+     * @return play the move of computer
+     */
+
+    public IModel computer_play(IModel game){
             Move computer_move;
             do {
                 computer_move = game.randomMove();
                 //game = game.play(computer_move);
             } while (game.getPlayer() == 2);
             assert computer_move.position >= 1 && computer_move.position <=5 : "Wrong position for computer!";
+            comp_pos = computer_move.position;
+            comp_dir = computer_move.direction;
+
             //System.out.println("Computer pos = " + computer_move.position + "Direction = " + direction);
             i = computer_move.position - 1;
             return game.play(computer_move);
