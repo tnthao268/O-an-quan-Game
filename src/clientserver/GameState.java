@@ -3,6 +3,10 @@ package clientserver;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * Game state contains information about the board state of the game.
+ */
+
 public class GameState implements Serializable {
       //GameState is actually position of MouseX, MouseY and board
      //Client transfer mouseX, mouseY and to server. Server transmit state of the board

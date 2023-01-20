@@ -2,8 +2,10 @@ package model;
 import java.util.*;
 import java.util.stream.IntStream;
 
-//https://stackoverflow.com/questions/64876894/how-to-use-multithreads-in-java-so-that-they-take-turns-in-a-game
-//example: thread in game (send high score to server?)
+/**
+ * Logical model of the Vietnamese game "O an quan"
+ * Information of the game: https://en.wikipedia.org/wiki/%C3%94_%C4%83n_quan
+ */
 
 public class Game implements IModel{
     int [] board ;
@@ -16,23 +18,12 @@ public class Game implements IModel{
     int player;
     int play_quadrat; //Position von der Quadrate, die zum Spielen gewählt wird
     int direction; //Richtung von der Streuung der Steine, links : direction = 1, rechts: direction = -1
-    //loggerStatus log = loggerStatus.OFF;
+
     private Random r = new Random();
-
-    /*
-
-    public Game play(Move...m){
-        Game g = this;
-        for (Move move: m){
-            g = g.play(move);
-        }
-        return g;
-    }
-
-     */
+    
 
     /**
-     * Contructor for class Game
+     * Constructor for class Game
      * @param board array which shows current state of the board
      * @param copy_boardlist list of all board's states in a move
      * @param human_score human player's score (score of player 2)
@@ -60,6 +51,11 @@ public class Game implements IModel{
     public int getAI_score(){return AI_score;}
 
     public int getPlayer(){return player;}
+
+    /**
+     * Method to create new game
+     * @return new game object
+     */
 
     public static Game newGame() {
         int [] board1 = {10,5,5,5,5,5,10,5,5,5,5,5};
@@ -100,14 +96,12 @@ public class Game implements IModel{
      * @return new changed position
      */
 
-    int change_position(int position) {
+    public int change_position(int position) {
         if (position < 0) position = 11;
         if (position > 11) position = 0;
+        System.out.println("Changed position: " + position);
         return position;
     }
-
-
-    //der Fall, wenn der Spieler denn Zug verliert
 
     /**
      * The case when the player loses their turn
@@ -116,7 +110,7 @@ public class Game implements IModel{
      * @param direction play direction
      * @return true when the next 2 fields do not have stones or the next field is big field with number of stones > 0
      */
-    boolean lose_turn(int[] board, int position, int direction) {
+    public boolean lose_turn(int[] board, int position, int direction) {
         int next_position = position + direction;
         next_position = change_position(next_position);//Position des nächsten Quadrats
         int next_next_position = next_position + direction;
@@ -124,26 +118,12 @@ public class Game implements IModel{
         return (board[next_position] == 0 && board[next_next_position] == 0)  || (next_position == 0 && board[next_position] != 0)|| (next_position == 6 && board[next_position] != 0);
     }
 
-    //der Fall, wenn der Spieler Steine zu sich gewinnt
-    /*
-    int win_stones(int score_turn, int[] board, int position, int direction){
-        int next_position = position + direction;
-        int next_next_position = next_position + direction;
-        while (board[next_position] == 0 && board[next_next_position] > 0) {
-            score_turn += board[next_next_position];
-            board[next_next_position] = 0;
-            position = next_next_position;
-            //weiter checken, ob das nächste Quadrat leer ist, sonst verliert man der Zug
-            if (board[next_position] > 0) return score_turn ;
-        }
-
-    }
-
+    /**
+     * Method to play the move which is chosen
+     * @param m Move which is played
+     * @return new game object
      */
 
-
-
-    //der Fall, wenn es in dem nächsten Quadrat wieder Steine gibt, dann werden diese Steine weiter gestreut.
     public Game play(Move m){
         int position = m.position;
         int direction = m.direction;
@@ -221,12 +201,12 @@ public class Game implements IModel{
             }
         }
 
-        /*
+
         for (int[] a: boardList) {
             System.out.println(Arrays.toString(a));
         }
 
-         */
+
         System.out.println(Arrays.toString(board));
 
         //System.out.println(Arrays.toString(boardList.toArray()));
@@ -340,14 +320,14 @@ public class Game implements IModel{
         }
     }
 
+    public String toString(){
+        return String.format("Board %s", Arrays.toString(board));
+    }
+
 
 
 }
 
-//berechnet die Werte der nächsten Node von einem Node, und Logik der Streuung der Steine
-    /*int move(Node n) {
-    }
-    */
 
 
 

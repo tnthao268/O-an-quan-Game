@@ -19,7 +19,7 @@ import java.util.List;
                ok 6. BUG Graphic: ben phai van hien ra quan lon (1 hien ra nhu 11)
      */
 
-//abstract ? then 2 views ?
+
 public class GameView extends PApplet implements IView {
         private IController controller;
 

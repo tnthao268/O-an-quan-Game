@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+
 public class ClientServerThread extends Thread {
 
     private final String ip;
@@ -144,6 +145,10 @@ public class ClientServerThread extends Thread {
             // Nothing. If sending not possible, do not send anything.
         }
     }
+
+    /**
+     * Method to run the thread
+     */
 
     public void run() {
         // Outer while handles reconnection
