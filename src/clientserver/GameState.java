@@ -14,6 +14,8 @@ public class GameState implements Serializable {
 
     public int[] board ;
 
+    public int comp_pos, comp_dir;
+
     //public int mouseX, mouseY;
 
     public GameState(int[] board){
@@ -21,7 +23,7 @@ public class GameState implements Serializable {
     }
 
     public String toString(){
-        return String.format("Board %s", Arrays.toString(board));
+        return String.format("Board %s ", Arrays.toString(board));
     }
 
 }

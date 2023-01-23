@@ -14,9 +14,8 @@ public abstract class Main {
         controller.setView(view);
         view.setController(controller);
 
+
         PApplet.runSketch(new String[]{"GameView"},view);
-
-
 
     }
 

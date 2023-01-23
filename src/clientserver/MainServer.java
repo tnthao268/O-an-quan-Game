@@ -16,7 +16,7 @@ public abstract class MainServer {
         controller.setView(view);
         view.setController(controller);
 
-        PApplet.runSketch(new String[]{"Pong"}, view);
+        PApplet.runSketch(new String[]{"View"}, view);
     }
 
 }

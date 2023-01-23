@@ -47,9 +47,11 @@ public class GameView extends PApplet implements IView {
        }
 
        public void handleClientInput(MouseInput obj){
-           mouseX = obj.mouseX();
-           mouseY = obj.mouseY();
-           execute_mouse(mouseX,mouseY);
+           synchronized (lock) {
+               mouseX = obj.mouseX();
+               mouseY = obj.mouseY();
+               execute_mouse(mouseX, mouseY);
+           }
        }
 
     public static GameView newServer(String ip, int port) {
@@ -150,7 +152,7 @@ public class GameView extends PApplet implements IView {
     public void draw() {
 
         synchronized (lock) {
-            if (thread.isConnected() & state != null ) {
+            if (thread.isConnected() ) {
 
 
                 //drawsetup just one time: start of the game
@@ -170,11 +172,15 @@ public class GameView extends PApplet implements IView {
 
                 controller.return_win();
 
+                textSize(25);
+                fill(0,100,100);
+                text("Human's turn", 520,100);
+
 
 
                 //thread.send(new MouseInput(mouseX, mouseY));
-                state= new GameState(controller.getGame().getBoard());
-                thread.send(state);
+                //state= new GameState(controller.getGame().getBoard());
+                //thread.send(state);
             }
         }
     }
@@ -445,7 +451,7 @@ public class GameView extends PApplet implements IView {
 
         void human_turn(){
             if(!your_turn) {
-                state.board = controller.getGame().getBoard();
+                //state.board = controller.getGame().getBoard();
                 controller.return_draw_step_stones();
                 System.out.println("Drawed");
             }
@@ -455,7 +461,7 @@ public class GameView extends PApplet implements IView {
 
        public void which_turn(IModel game){
             if (!your_turn && !game.isEndgame()) {
-                delay(6000);
+                delay(3000);
                 System.out.println("It is computer's turn");
                 controller.return_computer_turn();
                 your_turn = true;
@@ -465,12 +471,19 @@ public class GameView extends PApplet implements IView {
 
         public void computer_turn(IModel game) {
             has_down = false;
+            blank.resize(150,30);
+            image(blank,580,100);
             textSize(25);
             fill(0,100,100);
-            text("Computer plays!", 520,100);
+            text("Computer's turn!", 520,100);
 
-            if(!thread.isServer())controller.save_computer_move();
-            else controller.thread_play_computer_move();
+            synchronized (this) {
+               if(!thread.isServer())controller.save_computer_move();
+               else controller.thread_play_computer_move();
+            }
+
+
+
 
             red = true;
             circle_red(i);
@@ -478,6 +491,8 @@ public class GameView extends PApplet implements IView {
             equal = false;
             delay(6000);
             controller.return_draw_step_stones();
+
+
 
         }
 
@@ -487,12 +502,16 @@ public class GameView extends PApplet implements IView {
      * @return play the move of computer
      */
     public IModel thread_computer_move(IModel game){
-        //i = comp_pos - 1;
+        System.out.println("Comp pos is " + comp_pos + " ,Comp dir is " + comp_dir);
+        thread.send(new CompMove(comp_pos,comp_dir));
+        i = comp_pos - 1;
         return game.play(Move.of(comp_pos,comp_dir));
     }
-
-
+    
     int comp_pos, comp_dir;
+
+
+    
 
     /**
      * Play the move of computer
@@ -507,30 +526,34 @@ public class GameView extends PApplet implements IView {
                 //game = game.play(computer_move);
             } while (game.getPlayer() == 2);
             assert computer_move.position >= 1 && computer_move.position <=5 : "Wrong position for computer!";
-            thread.send(new CompMove(computer_move.position,computer_move.direction));
+            comp_pos = computer_move.position;
+            comp_dir = computer_move.direction;
+            //thread.send(state);
+            thread.send(new CompMove(comp_pos,comp_dir));
 
             //System.out.println("Computer pos = " + computer_move.position + "Direction = " + direction);
             i = computer_move.position - 1;
-            return game.play(computer_move);
+            return game.play(Move.of(comp_pos,comp_dir));
         }
 
-    public void handleCompMove(CompMove obj){
+    public void handleCompMove(CompMove obj) {
         comp_pos = obj.pos();
         comp_dir = obj.dir();
 
     }
-        public void win(IModel game) {
+    public void win(IModel game) {
             if(game.isEndgame()) {
                 fill(255,100,100);
-                textSize(50);
-                String s = game.getHuman_score() > game.getAI_score() ? "You won!" : "Sorry.Computer won!";
+                textSize(40);
+                String s = game.getHuman_score() > game.getAI_score() ? "You won!" : "Computer won!";
                 String tie = "Tie!";
-                text(s,500,250);
-                if (game.getHuman_score() == game.getAI_score()) text(tie,500,150);
+                text(s,450,250);
+                if (game.getHuman_score() == game.getAI_score()) text(tie,450,150);
                 //drawsetup = true;
                 //drawSetup();
             }
         }
+
         void HasPopped_up(int i){
             new_stone_x = arc_x - dist / 2 + dist*(i+1);
             new_stone_y = rect_y + dist / 2 - 10;

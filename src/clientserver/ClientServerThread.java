@@ -21,6 +21,8 @@ public class ClientServerThread extends Thread {
 
     private ObjectOutputStream oos;
 
+    private ObjectInputStream ois;
+
     private ClientServerThread(GameView view, String ip, int port) {
         this.view = view;
         this.ip = ip;
@@ -146,6 +148,19 @@ public class ClientServerThread extends Thread {
         }
     }
 
+
+    public boolean received()  {
+        try{
+        if (isConnected() && ois != null) {
+            ois.reset();
+            return true;
+        }
+        }
+        catch(IOException e) {}
+
+        return false;
+    }
+
     /**
      * Method to run the thread
      */
@@ -161,7 +176,8 @@ public class ClientServerThread extends Thread {
                 }
 
                 // Read objects
-                var ois = new ObjectInputStream(socket.getInputStream());
+                ois = new ObjectInputStream(socket.getInputStream());
+
                 while (true) {
                     Object obj = ois.readObject();
                     if (obj instanceof GameState) {

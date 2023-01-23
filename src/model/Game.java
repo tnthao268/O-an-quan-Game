@@ -8,9 +8,9 @@ import java.util.stream.IntStream;
  */
 
 public class Game implements IModel{
-    int [] board ;
+   private int [] board ;
     int [] tem_board = {10,5,5,5,5,5,10,5,5,5,5,5}; //temporary board to save the state of the board after each change
-    List<int[]> copy_boardlist = new ArrayList<>();
+    private List<int[]> copy_boardlist = new ArrayList<>();
 
     int human_score, AI_score;
     boolean endgame; // checkt, ob das Game schon endet
@@ -99,7 +99,7 @@ public class Game implements IModel{
     public int change_position(int position) {
         if (position < 0) position = 11;
         if (position > 11) position = 0;
-        System.out.println("Changed position: " + position);
+        //System.out.println("Changed position: " + position);
         return position;
     }
 
@@ -201,10 +201,12 @@ public class Game implements IModel{
             }
         }
 
-
+        /*
         for (int[] a: boardList) {
             System.out.println(Arrays.toString(a));
         }
+
+         */
 
 
         System.out.println(Arrays.toString(board));
@@ -320,8 +322,15 @@ public class Game implements IModel{
         }
     }
 
+    /**
+     * Text representation of the current game state
+     * @return
+     */
+
+    @Override
     public String toString(){
-        return String.format("Board %s", Arrays.toString(board));
+        //return String.format("Board %s", Arrays.toString(board));
+        return "Board: " + Arrays.toString(board) ;
     }
 
 
