@@ -1,3 +1,20 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see view
+ * @see controller.IController
+ * @see controller.IView
+ * @see model.IModel
+ * @see model.Move
+ * @see clientserver
+ * @see processing.core.PApplet
+ * @see processing.core.PImage
+ * @see java.util.Arrays
+ * @see java.util.List
+ */
+
+
 package view;
 
 import controller.IController;
@@ -11,48 +28,85 @@ import processing.core.PImage;
 import java.util.Arrays;
 import java.util.List;
 
-  /*problems: ok 1. lam quan stones thay doi theo logic
-              ok 2. graphic thay doi sau khi human choi, cho 1 luc roi cho may tinh choi, graphic up doi
-              ok 3. text: number cua so da
-                ok 4. khi ng bam vao o khong co gi hien len tren man hinh kh dc choi,
-              ok 5. graphic rai soi tu tu -> truyen Array List cac array state cua ban co cho Graphic
-               ok 6. BUG Graphic: ben phai van hien ra quan lon (1 hien ra nhu 11)
-     */
+/**
+ * GUI implementation of the game "O an quan" , with Processing library.
+ * This class implements IView interface
+ * <p>
+ * An example of playing this game online
+ * <a href ="https://gamevui.vn/o-an-quan/game">... </a>
+ *
+ * </p>
+ * <p>
+ * Source codes:
+ * Professor Dr. Martin Weigel: "Lecture codes: VW10 - Pong.java"
+ * </p>
+ */
 
 
 public class GameView extends PApplet implements IView {
-        private IController controller;
 
-        public void setController(IController controller) {
+    /**
+     * IController object
+     */
+    private IController controller;
+
+    /**
+     * To access controller from outside the class
+     * @param controller IController object
+     */
+
+    public void setController(IController controller) {
         this.controller = controller;
     }
 
-        private ClientServerThread thread;
+    /**
+     * Thread for client-server communication
+     */
 
-        private GameState state ;
+    private ClientServerThread thread;
+
+    /**
+     * State of the board to be transmitted
+     */
+    private GameState state ;
 
 
     /**
-     * A lock to avoid confilcts between draw() and ClientServerThread
+     * A lock to avoid conflicts between draw() and ClientServerThread
      */
 
-       private Object lock = new Object();
+    private final Object lock = new Object();
 
-       public void setGameState(GameState obj) {
+    /**
+     * Handles input as a GameState object
+     * @param obj GameState object
+     */
+
+    public void setGameState(GameState obj) {
            synchronized (lock) {
-               //state.board = controller.getGame().getBoard();
-               //initially state: null
                this.state = obj;
            }
-       }
+    }
 
-       public void handleClientInput(MouseInput obj){
+    /**
+     * Handles input as mouseInput object
+     * @param obj MouseInput object
+     */
+
+    public void handleClientInput(MouseInput obj){
            synchronized (lock) {
                mouseX = obj.mouseX();
                mouseY = obj.mouseY();
                execute_mouse(mouseX, mouseY);
            }
-       }
+    }
+
+    /**
+     * Create new thread as server
+     * @param ip IP address for server to connect to
+     * @param port port for server to connect to
+     * @return object from GameView class
+     */
 
     public static GameView newServer(String ip, int port) {
         var view = new GameView();
@@ -61,12 +115,26 @@ public class GameView extends PApplet implements IView {
         return view;
     }
 
+    /**
+     * Create new thread as client
+     * @param ip IP address for client to connect to
+     * @param port port for client to connect to
+     * @return object from GameView class
+     */
+
     public static GameView newClient(String ip, int port) {
         var view = new GameView();
         view.thread = ClientServerThread.newClient(ip, port, view);
         view.thread.start();
         return view;
     }
+
+    /**
+     * Create new thread which can either be server or client
+     * @param ip IP address to connect to
+     * @param port port to connect to
+     * @return new GameView object
+     */
 
     public static GameView newAny(String ip, int port) {
         var view = new GameView();
@@ -75,61 +143,128 @@ public class GameView extends PApplet implements IView {
         return view;
     }
 
+    /**
+     * Images to be drawn on the graphics
+     */
 
+    private PImage back_ground,stone_5, stone_3, stone_2,stone_1,stone_4,stone_6,stone_more,big_stone,blank,red_arrow,green_arrow;
 
+    /**
+     * x-coordinate of the left half circle of the board
+     */
+    private int arc_x = 320;
 
+    /**
+     * y-coordinate of the left half circle of the board
+     */
+    private int arc_y = 380;
 
+    /**
+     * Radius of the left half circle of the board
+     */
+    private int arc_r = 240;
 
+    /**
+     * Y- Coordinate of the rectangle of the board
+     */
+    private int rect_y = arc_y - arc_r/2;
+    /**
+     * Width of the rectangle of the board
+     */
+    private int rect_width = arc_r*3;
+    /**
+     * Distance of between small squares on the board
+     */
+    private int dist = rect_width/5;
 
+    /**
+     * Number of stones on the small squares
+     */
+    private int s_stone = 5;
 
+    /**
+     * Number of stones on the side half circles (which 1 big stone represent)
+     */
+    private int s_big_stone = 10 ;
+    /**
+     * Index of square's position on the board
+     */
+    private int i;
+    /**
+     * List of possible values of i
+     */
+    private List<Integer> a = Arrays.asList(0,1,2,3,4);
 
+    /**
+     * Returns true if upper part of the board is played
+     */
+    private boolean has_up = false;
+    /**
+     * Returns true if lower part of the board is played
+     */
+    private boolean has_down = false;
+    /**
+     * Return true if it is currently human's turn, false if it is computer's turn
+     */
+    private boolean human_turn = true;
+    /**
+     * x-coordinate of small stones' image in the half circle sides of the board
+     */
+    private int circle_small_stone_x;
+    /**
+     * y-coordinate of small stones' image in the half circle sides of the board
+     */
+    private int circle_small_stone_y;
+    /**
+     * x-coordinate of text which shows number of stones in a field of the board
+     */
+    private int text_x;
+    /**
+     * y-coordinate of text which shows number of stones in a field of the board
+     */
+    private int text_y;
+    /**
+     * Returns true if human player chooses left direction to play
+     */
+    private boolean chose_left = false;
+    /**
+     * Returns true if human player chooses right direction to play
+     */
+    private boolean chose_right = false;
+    /**
+     * Direction of the move played by human player. 1 if direction is left. -1 if direction is right
+     */
+    private int direction;
 
+    /**
+     * Variable tells for_loop to stop when array in copy_board list equals board
+     */
+    private boolean equal = false;
+    /**
+     * Returns true when game is set up in the beginning, falls otherwise
+     */
+    private boolean draw_set_up = true;
+    /**
+     * Returns true when small circle is drawn red, when false it is drawn white
+     */
 
+    private boolean red = false;
 
-        boolean AI_turn;
+    /**
+     * Two big stones on the sides of the board are created
+     */
+    Big_stone s1 = new Big_stone(arc_x-30,arc_y+80,30,50);
+    Big_stone s2= new Big_stone(arc_x+rect_width+30,arc_y-60,30,50);
 
-        int human_score,AI_score;
-        boolean hasPopped;
-        PImage back_ground,stone_5, stone_3, stone_2,stone_1,stone_4,stone_6,stone_more,big_stone,blank,red_arrow,green_arrow;
-        int arc_x = 320; //x-Koordinate des linken hälften Kreis
-        int arc_y = 380; //y-Koordinate des linken hälften Kreis
-        int arc_r = 240;
-        int rect_y = arc_y - arc_r/2;
-        int rect_width = arc_r*3;
-        int dist = rect_width/5;
-        int s_stone = 5; //number to determine which photo of stones are shown
-        int s_big_stone = 10 ;
-        List<Integer> a = Arrays.asList(0,1,2,3,4);
-        boolean has_up = false;
-        boolean has_down = false;
-        boolean your_turn = true;
-        int new_stone_x;
-        int new_stone_y;
-        int text_x;
-        int text_y;
-        boolean chose_left = false;
-        boolean chose_right = false;
-        int direction;
-        int colour;
-        int colour1;
-        int colour2;
-        int i; // index of position of stone field
+    /**
+     * Settings of GUI with window size
+     */
+    public void settings(){size(1300,700);}
 
-        Big_stone s1 = new Big_stone(arc_x-30,arc_y+80,30,50);
-        Big_stone s2= new Big_stone(arc_x+rect_width+30,arc_y-60,30,50);
-
-
-        //variable tells for_loop to stop when array in copy_board equals board
-        boolean equal = false;
-
-        boolean drawsetup = true;
-
-
-        boolean red = false;
-
-
-        public void settings(){size(1300,700);}
-        public void setup(){
+    /**
+     * Game set up
+     */
+    public void setup(){
 
             back_ground = loadImage("cay tre.jpg");
             stone_5 = loadImage("stone5.png");
@@ -147,7 +282,11 @@ public class GameView extends PApplet implements IView {
             //red_arrow.resize(80,45);
             background(back_ground);
             state = new GameState(controller.getGame().getBoard());
-        }
+    }
+
+    /**
+     * Draw the animation
+     */
 
     public void draw() {
 
@@ -155,14 +294,14 @@ public class GameView extends PApplet implements IView {
             if (thread.isConnected() ) {
 
 
-                //drawsetup just one time: start of the game
-                if (drawsetup) {
+                //draw_set_up just one time: start of the game
+                if (draw_set_up) {
                     drawSetup();
-                    drawsetup = false;
+                    draw_set_up = false;
                 }
 
 
-                human_turn();
+                end_human_turn();
 
                 controller.return_draw_score();
 
@@ -176,25 +315,29 @@ public class GameView extends PApplet implements IView {
                 fill(0,100,100);
                 text("Human's turn", 520,100);
 
-
-
-                //thread.send(new MouseInput(mouseX, mouseY));
-                //state= new GameState(controller.getGame().getBoard());
-                //thread.send(state);
             }
         }
     }
 
+    /**
+     * When mouse is pressed, human move is played and automatically computer move is played
+     */
+
 
     public void mousePressed() {
             thread.send(new MouseInput(mouseX, mouseY));
-
-            //wenn Player auf der Seite gehört zu Computer von dem Spielbrett spielt
             execute_mouse(mouseX,mouseY);
 
-        }
+    }
 
-        public void execute_mouse(int mouseX, int mouseY){
+    /**
+     * Execute player's move based on the position of the pressed mouse,
+     * which indicates position and direction of the move
+     * @param mouseX x-coordinate of mouse
+     * @param mouseY y-coordinate of mouse
+     */
+
+    private void execute_mouse(int mouseX, int mouseY){
             for (int i : a) {
                 if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
                         && mouseY < arc_y && mouseY > (arc_y - stone_5.height)) {
@@ -203,7 +346,7 @@ public class GameView extends PApplet implements IView {
 
                 }
                 if (mouseX > arc_x + dist * i && mouseX < (arc_x + dist * i + stone_5.width)
-                        && mouseY > arc_y && mouseY < (arc_y + stone_5.height) && your_turn) {
+                        && mouseY > arc_y && mouseY < (arc_y + stone_5.height) && human_turn) {
 
                     has_down = true;
                     this.i = i;
@@ -212,12 +355,12 @@ public class GameView extends PApplet implements IView {
 
 
                     if (chose_left) {
-                        if (!controller.is_empty_field()) {
+                        if (controller.is_empty_field()) {
                             controller.save_human_move_left();
 
                             System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, 1).position + "Direction" + direction);
                             //System.out.println("Human score = " + human_score);
-                            your_turn = false;
+                            human_turn = false;
                             chose_left = false;
                             equal = false;
 
@@ -232,10 +375,10 @@ public class GameView extends PApplet implements IView {
                         }
                     }
                     if (chose_right) {
-                        if (!controller.is_empty_field()) {
+                        if (controller.is_empty_field()) {
                             controller.save_human_move_right();
                             System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, -1).position + "Dir = " + direction);
-                            your_turn = false;
+                            human_turn = false;
                             chose_right = false;
                             equal = false;
                             //draw_step_stones();
@@ -251,12 +394,10 @@ public class GameView extends PApplet implements IView {
                     }
                     //System.out.println(Arrays.toString(game.getBoard()));
 
-                    colour = color(255);
                 }
             }
             if (mouseX < green_arrow.width / 2 + 580 && mouseX > 580 - green_arrow.width / 2 && mouseY > 600 - green_arrow.height / 2 && mouseY < 600 + green_arrow.height / 2) {
                 direction = 1;
-                colour1 = color(128, 186, 36); //green
                 chose_left = true;
                 //text_left_right();
 
@@ -264,7 +405,6 @@ public class GameView extends PApplet implements IView {
             }
             if (mouseX < red_arrow.width / 2 + 720 && mouseX > 720 - red_arrow.width / 2 && mouseY > 600 - red_arrow.height / 2 && mouseY < 600 + red_arrow.height / 2) {
                 direction = -1;
-                colour2 = color(184, 0, 64); //red
                 chose_right = true;
                 //text_left_right();
 
@@ -273,14 +413,23 @@ public class GameView extends PApplet implements IView {
         }
 
 
+    /**
+     * Return game after player human chose left direction to play
+     * @param game Game object
+     * @return Game object
+     */
 
-        //if chose_left, chose_right
-
-        public IModel human_play_left(IModel game){
+    public IModel human_play_left(IModel game){
             return game.play(Move.of(i+(5-i)*2+1,1));
-        }
+    }
 
-        public IModel human_play_right(IModel game){
+    /**
+     * Return game after player human chose right direction to play
+     * @param game Game object
+     * @return Game object
+     */
+
+    public IModel human_play_right(IModel game){
             return game.play(Move.of(i+(5-i)*2+1,-1));
         }
 
@@ -291,16 +440,21 @@ public class GameView extends PApplet implements IView {
      */
 
     public boolean field_is_empty(IModel game){
-            if (game.getBoard()[i+(5-i)*2+1] == 0) {
-                return true;
-            }
-            return false;
-        }
+        return game.getBoard()[i + (5 - i) * 2 + 1] == 0;
+    }
+
+    /**
+     * Position of the computer's move chosen by server and to be transmitted to client
+     */
+    private int comp_pos;
+    /**
+     * Direction of the computer's move chosen by server and to be transmitted to client
+     */
+    private int comp_dir;
 
 
-
-    /** Method to draw human_score and computer score text
-     *
+    /**
+     * Method to draw human_score and computer score text
      * @param game game Object
      */
     public void draw_score(IModel game){
@@ -324,7 +478,7 @@ public class GameView extends PApplet implements IView {
      * @param i position on the board
      */
 
-    public void draw_number_stones(int [] board, int i, boolean up){
+    private void draw_number_stones(int [] board, int i, boolean up){
         blank.resize(30,30);
 
 
@@ -334,16 +488,19 @@ public class GameView extends PApplet implements IView {
             text(String.valueOf(board[i + (5 - i) * 2 + 2]),arc_x + dist * (i - 1) + 10, arc_y + 30 );
         }
         else {
-            image(blank,arc_x + dist * (i - 1) + 24, arc_y - arc_r / 2 + 20);
-            text(String.valueOf(board[i]), arc_x + dist * (i - 1) + 10, arc_y - arc_r / 2 + 30);
+            image(blank,arc_x + dist * (i - 1) + 24, arc_y - (float) arc_r / 2 + 20);
+            text(String.valueOf(board[i]), arc_x + dist * (i - 1) + 10, arc_y - (float) arc_r / 2 + 30);
         }
 
     }
 
+    /**
+     * Makes the field chosen by players having red circle
+     * @param i position of the circle
+     */
 
-        // makes the field chosen turn red/pink
 
-        void circle_red(int i){
+    private void circle_red(int i){
             if(red) fill(252, 199, 199);
             else fill(255);
             noStroke();
@@ -353,10 +510,12 @@ public class GameView extends PApplet implements IView {
             else ellipse(arc_x + dist * i + 20, arc_y - 20 , 20, 20);
         }
 
-        //draw states of the board of each move
-        // runs only when the array element which is state of the board during the move does not equal the last state of the board yet
-        //
-        public void draw_step_stones(IModel game){
+    /**
+     * Draw states of the board of each move
+     * Runs till when array element which is state of the board during the move does not equal the last state of the board yet
+     * @param game Game object
+     */
+    public void draw_step_stones(IModel game){
 
             if (!equal) {
                 for (int[] b : game.getCopyBoardlist()) {
@@ -364,7 +523,7 @@ public class GameView extends PApplet implements IView {
                     circle_red(i);
                     draw_small_stones_down_tem(b);
                     draw_small_stones_up_tem(b);
-                    //delay(2000);
+                    delay(1000);
                     if (Arrays.equals(b, game.getBoard())) {
                         System.out.println("Equal");
                         equal = true;
@@ -374,13 +533,13 @@ public class GameView extends PApplet implements IView {
                 }
 
             }
-        }
+    }
 
-        //method to draw text which is number of stones in each field
+    /**
+     * Draw initial state of the game
+     */
 
-
-        //draw initial state of the game
-        public void drawSetup(){
+    private void drawSetup(){
             fill(255, 255, 255);
             strokeWeight(6);
             //Brettspiel zeigen
@@ -403,11 +562,11 @@ public class GameView extends PApplet implements IView {
                 //Steine zeigen
                 new Stone(stone_5, arc_x - dist / 2 + dist * i, rect_y + dist / 2 - 10).display(g);
                 new Stone(stone_5, arc_x - dist / 2 + dist * i, rect_y + dist / 2 * 3 - 30).display(g);
-                fill(colour);
+                fill(255);
                 textSize(30);
-                //fill(colour2);
+                //fill(color_right_arrow);
                 text(String.valueOf(s_stone), arc_x + dist * (i - 1) + 10, arc_y + 30);
-                text(String.valueOf(s_stone), arc_x + dist * (i - 1) + 10, arc_y - arc_r / 2 + 30);
+                text(String.valueOf(s_stone), arc_x + dist * (i - 1) + 10, arc_y - (float)arc_r / 2 + 30);
                 // Zwei größer Steine als Königen zeigen
                 fill(255, 255, 0);
                 strokeWeight(2);
@@ -416,11 +575,11 @@ public class GameView extends PApplet implements IView {
                 //new Stone(stone_5,arc_x-50,arc_y).display(g);
                 textSize(30);
                 fill(0, 0, 0);
-                text(String.valueOf(s_big_stone), arc_x + dist * (0 - 1) + 10, arc_y - arc_r / 2 + 29 );
+                text(String.valueOf(s_big_stone), arc_x + dist * (0 - 1) + 10, arc_y - (float) arc_r / 2 + 29 );
                 text(String.valueOf(s_big_stone), arc_x + dist * (6 - 1) + 20, arc_y + 25);
             }
             if (has_down) {
-                //new Stone(blank, new_stone_x,new_stone_y).display(g);
+                //new Stone(blank, circle_small_stone_x,circle_small_stone_y).display(g);
                 //System.out.println(Arrays.toString(game.getBoard()));
                 HasPopped_down(i);
                 setImage(i+1,0,false); //draw blank image when the user clicked (chooses a stone field)
@@ -430,46 +589,41 @@ public class GameView extends PApplet implements IView {
             if(has_up){
                 HasPopped_up(i);
                 setImage(i+1,0,false);
-
             }
-
-
-
-        }
-
-
-
-    /*
-
-    public void mouseReleased(){
-        draw_step_stones();
     }
 
+    /**
+     * Draw the board's states when human plays
      */
 
-
-
-        void human_turn(){
-            if(!your_turn) {
+    private void end_human_turn(){
+            if(!human_turn) {
                 //state.board = controller.getGame().getBoard();
                 controller.return_draw_step_stones();
-                System.out.println("Drawed");
+                System.out.println("Drew");
             }
-        }
+    }
 
+    /**
+     * When human turn's ends, plays the computer
+     * @param game Game object
+     */
 
-
-       public void which_turn(IModel game){
-            if (!your_turn && !game.isEndgame()) {
+    public void which_turn(IModel game){
+            if (!human_turn && !game.isEndgame()) {
                 delay(3000);
                 System.out.println("It is computer's turn");
                 controller.return_computer_turn();
-                your_turn = true;
+                human_turn = true;
             }
-        }
+    }
 
+    /**
+     * Shows GUI and what happens to the game when it is computer turn
+     * @param game Game Object
+     */
 
-        public void computer_turn(IModel game) {
+    public void computer_turn(IModel game) {
             has_down = false;
             blank.resize(150,30);
             image(blank,580,100);
@@ -478,11 +632,19 @@ public class GameView extends PApplet implements IView {
             text("Computer's turn!", 520,100);
 
             synchronized (this) {
-               if(!thread.isServer())controller.save_computer_move();
-               else controller.thread_play_computer_move();
+               if(thread.isServer()){
+                   controller.save_computer_move();
+                   //thread.send(new Player(controller.getGame().getPlayer()));
+               }
+               else {
+                   try {
+                       thread.sleep(6000);
+                   } catch (InterruptedException e) {
+                       throw new RuntimeException(e);
+                   }
+                   controller.thread_play_computer_move();
+               }
             }
-
-
 
 
             red = true;
@@ -491,32 +653,25 @@ public class GameView extends PApplet implements IView {
             equal = false;
             delay(6000);
             controller.return_draw_step_stones();
+    }
 
 
-
-        }
 
     /**
-     * Play move of computer from another thread (server)
-     * @param game Object game
-     * @return play the move of computer
+     * Play move of computer from client thread
+     * @param game Game state
      */
-    public IModel thread_computer_move(IModel game){
+    public void thread_computer_move(IModel game){
         System.out.println("Comp pos is " + comp_pos + " ,Comp dir is " + comp_dir);
         thread.send(new CompMove(comp_pos,comp_dir));
         i = comp_pos - 1;
-        return game.play(Move.of(comp_pos,comp_dir));
+        game.play(Move.of(comp_pos, comp_dir));
     }
     
-    int comp_pos, comp_dir;
-
-
-    
-
     /**
-     * Play the move of computer
-     * @param game Object game
-     * @return play the move of computer
+     * Play the move of computer from server thread
+     * @param game game's state
+     * @return new game's state after the played move
      */
 
     public IModel computer_play(IModel game){
@@ -536,11 +691,22 @@ public class GameView extends PApplet implements IView {
             return game.play(Move.of(comp_pos,comp_dir));
         }
 
+    /**
+     * Handles the input which are the chosen position and direction of computer's move
+     * @param obj CompMove object
+     */
+
     public void handleCompMove(CompMove obj) {
         comp_pos = obj.pos();
         comp_dir = obj.dir();
 
     }
+
+    /**
+     * Shows GUI and game's state when the game ends
+     * @param game game's state
+     */
+
     public void win(IModel game) {
             if(game.isEndgame()) {
                 fill(255,100,100);
@@ -549,32 +715,54 @@ public class GameView extends PApplet implements IView {
                 String tie = "Tie!";
                 text(s,450,250);
                 if (game.getHuman_score() == game.getAI_score()) text(tie,450,150);
-                //drawsetup = true;
+                //draw_set_up = true;
                 //drawSetup();
             }
         }
 
-        void HasPopped_up(int i){
-            new_stone_x = arc_x - dist / 2 + dist*(i+1);
-            new_stone_y = rect_y + dist / 2 - 10;
+    /**
+     * When an upper square of stones is chosen to be played,
+     * red circle appears on these square
+     * @param i index position
+     */
+
+    private void HasPopped_up(int i){
+            circle_small_stone_x = arc_x - dist / 2 + dist*(i+1);
+            circle_small_stone_y = rect_y + dist / 2 - 10;
             text_x = arc_x + dist * i + 10;
             text_y = arc_y - arc_r / 2 + 30;
-        }
+    }
 
-        void HasPopped_down(int i){
-            new_stone_x = arc_x - dist / 2 + dist*(i+1);
-            new_stone_y = rect_y + dist / 2 * 3 - 30;
+    /**
+     * When a lower square of stones is chosen to be played,
+     * red circle appears on these square
+     * @param i index position
+     */
+
+    private void HasPopped_down(int i){
+            circle_small_stone_x = arc_x - dist / 2 + dist*(i+1);
+            circle_small_stone_y = rect_y + dist / 2 * 3 - 30;
             text_x = arc_x + dist * i + 10;
             text_y = arc_y + 30;
         }
 
-        PImage img;
-        PImage img_bigStone;
+    /**
+     * PImage object to show images of small stones
+     */
+
+    private PImage img;
+    /**
+     * PImage object to show images of big stones
+     */
+    private PImage img_bigStone;
+
+    /**
+     * Number of stones in a fielt define which pictures are loaded and shown
+     * @param num number of stones in a field
+     */
 
 
-        //number of stones define which pictures are loaded and shown
-
-        void num_stone(int num){
+    private void num_stone(int num){
             if (num == 0) {
                 img = blank;
                 blank = loadImage("blank.png");
@@ -611,39 +799,24 @@ public class GameView extends PApplet implements IView {
 
         }
 
-        //draw stone field when number of stones = num, boolean up: true when computer side
-        void setImage(int i, int num, boolean up){
-            //if num < 10 and i = 0 or 7 then put blank image on the big stone postition
+    /**
+     * Set the images of stones in small stone field when number of stones = num
+     * @param i index position of the image
+     * @param num number of stones in a field
+     * @param up true when it is computer side (upper part of the board)
+     */
+
+    private void setImage(int i, int num, boolean up){
+            //if num < 10 and i = 0 or 7 then put blank image on the big stone position
 
             num_stone(num);
 
-        /*
-        if (num < 10 && (i==7 || i==0)) {
-            img_bigStone = blank;
-            blank = loadImage("blank.png");
-        }
-
-        if (num > 10 && (i==7 || i==0)){
-            img_bigStone = big_stone;
-            big_stone = loadImage("big_stone.png");
-        }
-
-         */
-
-
-
-
-            //new Stone(stone_5, arc_x - dist / 2 + dist * i, rect_y + dist / 2 * 3 - 30).display(g);
-
-            //if i == 7 or 10 and num < 10 then draw blank image on the position of big stone, num > 10 draw big stone there.
-            //Big_stone s1 = new Big_stone(arc_x-30,arc_y+80,30,50);
-            //    Big_stone s2= new Big_stone(arc_x+rect_width+30,arc_y-60,30,50)
             if (up) {
-                image(img,arc_x - dist / 2 + dist * i, rect_y + dist / 2 - 10,60,60);
+                image(img,arc_x - (float)dist / 2 + dist * i, rect_y + (float)dist / 2 - 10,60,60);
                 //if (num != 10 && (i==0)) image(img_bigStone,arc_x-30,arc_y+80,30,50);
             }
             else {
-                image(img,arc_x - dist / 2 + dist * i, rect_y + dist / 2 * 3 - 30,60,60);
+                image(img,arc_x - (float)dist / 2 + dist * i, rect_y + (float)dist / 2 * 3 - 30,60,60);
                 //if (num != 10 && i==7) image(img_bigStone, arc_x+rect_width+30,arc_y-60,30,50);
             }
 
@@ -651,7 +824,14 @@ public class GameView extends PApplet implements IView {
             text(String.valueOf(num),text_x,text_y);
         }
 
-        void set_big_stone_image(int i, int[] b, boolean up){
+    /**
+     * Set the images of big stones in big stone field
+     * @param i index position of the image
+     * @param b game's board
+     * @param up true when it is computer side (upper part of the board)
+     */
+
+    private void set_big_stone_image(int i, int[] b, boolean up){
             if (b[i] < 10 ) {
                 img_bigStone = blank;
                 blank = loadImage("blank.png");
@@ -668,13 +848,13 @@ public class GameView extends PApplet implements IView {
 
         //b[1],2,3,4,5
 
-        /**
-         * Draw images of stones in the 2 "Big Stone" fields
+    /**
+         * Set images of small stones in the 2 "Big Stone" fields
          * @param i position in the board array
          * @param num number of stones from b[i] position
-         */
+     */
 
-        void set_small_stones_near_big_stone(int i, int num){
+    private void set_small_stones_near_big_stone(int i, int num){
             num_stone(num);
             if (i == 0) {
                 image(img,arc_x- 40, arc_y - 20 , 60,60);
@@ -682,7 +862,12 @@ public class GameView extends PApplet implements IView {
             if (i == 6) image(img,arc_x + rect_width + 70, arc_y + 10 ,60,60);
         }
 
-        void draw_small_stones_up_tem(int [] b){
+    /**
+     * Draw the images of small stones in the upper stone fields
+     * @param b game's board
+     */
+
+    private void draw_small_stones_up_tem(int [] b){
             //for (int[] b : game.getCopyBoardlist()) {
             for (int i = 0; i<6; i++) { //for every temporary board in copy list
                 if (i != 0) setImage(i, b[i], true);
@@ -703,9 +888,13 @@ public class GameView extends PApplet implements IView {
             System.out.println(Arrays.toString(b));
         }
 
-        //b[11],10,8,9,7
-        void draw_small_stones_down_tem(int[] b){
-            //for every temporary board in copy list
+    /**
+     * Draw the images of small stones in the lower stone fields
+     * @param b game's board
+     */
+
+    private void draw_small_stones_down_tem(int[] b){
+            //for every temporary board in copy board list
             for (int i = 1; i<7; i++) {
                 if ((i + (5 - i) * 2 + 2) != 6) setImage(i, b[i + (5 - i) * 2 + 2], false);
                 else {
@@ -719,56 +908,10 @@ public class GameView extends PApplet implements IView {
                     }
                 }
                 draw_number_stones(b,i,false);
-
-            /*
-              if (b[i + (5 - i) * 2+2] > 6) {
-                    if(b[i + (5 - i) * 2+2] < 10) { // <= 10 ??
-                        setImage(i, b[i + (5 - i) * 2+2] ,  false);
-                        //set_big_stone_image(i + (5 - i) * 2+2,b,false);
-                    }
-                    else if ( (i + (5 - i) * 2+2) == 6 && b[i + (5 - i) * 2+2] >= 10) {
-                        setImage(i, b[i + (5 - i) * 2+2] - 10 ,  false);
-                        set_big_stone_image(i + (5 - i) * 2+2,b,false);
-                    }
-                }
-
-                if ((i + (5 - i) * 2+2) == 6 && b[i + (5 - i) * 2+2]< 10) set_big_stone_image(i + (5 - i) * 2+2,b,false);
-
-             */
-                //if (b[i + (5 - i) * 2+2] > 6) setImage(i, b[i + (5 - i) * 2+2],  false);
-                //delay(500);
             }
             //System.out.println(Arrays.toString(b));
         }
-
-
-
-
-
-    /*
-    public void mouseClicked(){
-        if (mouseX<green_arrow.width+580 && mouseX>580 && mouseY > 600 && mouseY < 600+green_arrow.height){
-            direction = -1;
-        }
-        if (mouseX<red_arrow.width+720 && mouseX>720 && mouseY > 800 && mouseY<800+red_arrow.height){
-            direction = 1;
-        }
-    }
-*/
-        //void computer_turn(){
-
-    /*
-    public void next(){
-        text(String.valueOf())
-    }
-    */
-
-
-
-
-
-
-    }
+}
 
 
 

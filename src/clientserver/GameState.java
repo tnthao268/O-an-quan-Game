@@ -1,3 +1,15 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see clientserver
+ * @see java.io.Serializable
+ * @see java.util.Arrays
+ */
+
+
+
+
 package clientserver;
 
 import java.io.Serializable;
@@ -8,20 +20,26 @@ import java.util.Arrays;
  */
 
 public class GameState implements Serializable {
-      //GameState is actually position of MouseX, MouseY and board
-     //Client transfer mouseX, mouseY and to server. Server transmit state of the board
-
+    /**
+     * Game's board
+     */
 
     public int[] board ;
 
-    public int comp_pos, comp_dir;
+    /**
+     * Constructor of the class
+     * @param board game's board
+     */
 
-    //public int mouseX, mouseY;
 
     public GameState(int[] board){
         this.board = board;
     }
 
+    /**
+     * Text presentation of GameState object
+     * @return Text presentation of GameState object
+     */
     public String toString(){
         return String.format("Board %s ", Arrays.toString(board));
     }

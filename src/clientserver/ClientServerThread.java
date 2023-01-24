@@ -1,3 +1,17 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see clientserver
+ * @see view.GameView
+ * @see java.io.IOException
+ * @see java.io.ObjectInputStream
+ * @see java.io.ObjectOutputStream
+ * @see java.net.ServerSocket
+ * @see java.net.Socket
+ */
+
+
 package clientserver;
 
 import view.GameView;
@@ -8,25 +22,60 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * A class used to create and implement threads
+ */
+
+
 
 public class ClientServerThread extends Thread {
 
+    /**
+     * IP address used by the thread
+     */
+
     private final String ip;
+    /**
+     * Port used by the thread
+     */
 
     private final int port;
+    /**
+     * ServerSocket variable
+     */
     private ServerSocket serversocket;
+    /**
+     * Socket variable
+     */
     private Socket socket;
+    /**
+     * Game's view variable
+     */
 
-    private GameView view;
+    private final GameView view;
+    /**
+     * Output data
+     */
 
     private ObjectOutputStream oos;
+    /**
+     * Input data
+     */
 
     private ObjectInputStream ois;
+
+    /**
+     * Private constructor for the class
+     * @param view view object
+     * @param ip ip address to connect to
+     * @param port port to connect to
+     */
 
     private ClientServerThread(GameView view, String ip, int port) {
         this.view = view;
         this.ip = ip;
         this.port = port;
+        //this.queue = queue;
     }
 
     /**
@@ -38,10 +87,13 @@ public class ClientServerThread extends Thread {
         var cst = new ClientServerThread(view, "localhost", port);
         try {
             cst.serversocket = new ServerSocket(port);
+            //queue.take();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return cst;
+
+            return cst;
+
     }
 
     /**
@@ -58,7 +110,9 @@ public class ClientServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return cst;
+
+            return cst;
+
     }
 
 
@@ -76,7 +130,6 @@ public class ClientServerThread extends Thread {
 
     /**
      * Creates a new connection either as a client or as a server.
-     * @throws IOException
      */
     private void reconnect() {
         System.out.println("Reconnect");
@@ -149,18 +202,6 @@ public class ClientServerThread extends Thread {
     }
 
 
-    public boolean received()  {
-        try{
-        if (isConnected() && ois != null) {
-            ois.reset();
-            return true;
-        }
-        }
-        catch(IOException e) {}
-
-        return false;
-    }
-
     /**
      * Method to run the thread
      */
@@ -199,23 +240,4 @@ public class ClientServerThread extends Thread {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

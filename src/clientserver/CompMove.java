@@ -1,3 +1,12 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see clientserver
+ * @see java.io.Serializable
+ */
+
+
 package clientserver;
 
 import java.io.Serializable;

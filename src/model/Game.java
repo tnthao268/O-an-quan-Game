@@ -1,25 +1,63 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see model
+ * @see java.util
+ * @see java.util.stream.IntStream
+ */
+
 package model;
 import java.util.*;
 import java.util.stream.IntStream;
 
 /**
  * Logical model of the Vietnamese game "O an quan"
- * Information of the game: https://en.wikipedia.org/wiki/%C3%94_%C4%83n_quan
+ * Information of the game:
+ * <a href="https://en.wikipedia.org/wiki/%C3%94_%C4%83n_quan">...</a>
+ * References :
+ * <a href ="https://123docz.net/document/3974969-bao-cao-mon-tri-tue-nhan-tao-game-o-an-quan.htm">...</a>
  */
 
 public class Game implements IModel{
-   private int [] board ;
-    int [] tem_board = {10,5,5,5,5,5,10,5,5,5,5,5}; //temporary board to save the state of the board after each change
-    private List<int[]> copy_boardlist = new ArrayList<>();
 
-    int human_score, AI_score;
-    boolean endgame; // checkt, ob das Game schon endet
-    boolean human_turn; //checkt, ob der menschliche Spieler dran ist
-    int player;
-    int play_quadrat; //Position von der Quadrate, die zum Spielen gewählt wird
-    int direction; //Richtung von der Streuung der Steine, links : direction = 1, rechts: direction = -1
+    /**
+     * Current board's state of the game.
+     * For example: [10,5,5,5,5,5,10,5,5,5,5,5]
+     */
+    private final int [] board ;
 
-    private Random r = new Random();
+    /**
+     * Temporary board to save the state of the board after a change during each move
+     */
+    private int [] tem_board = {10,5,5,5,5,5,10,5,5,5,5,5};
+
+    /**
+     * List of different changed states of the board after each move
+     */
+    private List<int[]> copy_boardlist;
+
+    /**
+     * Human score
+     */
+
+    private int human_score;
+
+    /**
+     * AI_score
+     */
+    private int AI_score;
+
+    /**
+     * Current player.
+     * Player 1: Computer, Player 2: Human
+     */
+
+    private int player;
+    /**
+     * New random object
+     */
+    private final Random r = new Random();
     
 
     /**
@@ -31,26 +69,74 @@ public class Game implements IModel{
      * @param player the player who plays first
      */
 
-    public Game(int[] board,  List<int[]> copy_boardlist, int human_score, int AI_score, int player){
+    private Game(int[] board,  List<int[]> copy_boardlist, int human_score, int AI_score, int player){
         this.board = board;
         this.AI_score = AI_score;
         this.human_score = human_score;
         this.player = player;
         this.copy_boardlist = copy_boardlist;
     }
+
+    /**
+     * To create game object from inside outside the class.
+     * This method helps to access private constructor
+     * @param board array which shows current state of the board
+     * @param copy_boardlist list of all board's states in a move
+     * @param human_score human player's score (score of player 2)
+     * @param AI_score computer's score (score of player 1)
+     * @param player the player who plays first
+     *
+     */
     public static Game of(int[] board,  List<int[]> copy_boardlist, int human_score, int AI_score, int player) {
         return new Game(board, copy_boardlist, human_score, AI_score, player);
     }
 
-    public int [] getBoard() {return board;}
+    /**
+     * Method to return current board's state of the game.
+     * For example: [10,5,5,5,5,5,10,5,5,5,5,5]
+     * @return board
+     */
+
+    public int [] getBoard() {
+        return board;
+    }
+
+    /**
+     * Method to return List of different changed states of the board after each move
+     * @return list of the board's states
+     */
+
+
     public List<int[]> getCopyBoardlist(){
         return copy_boardlist;
     }
 
-    public int getHuman_score(){return human_score;}
-    public int getAI_score(){return AI_score;}
+    /**
+     * Method to return human's score
+     * @return human score
+     */
 
-    public int getPlayer(){return player;}
+    public int getHuman_score(){
+        return human_score;
+    }
+
+    /**
+     * Method to return computer's score
+     * @return computer score
+     */
+    public int getAI_score(){
+        return AI_score;
+    }
+
+    /**
+     * Method to return current player .
+     * Player 1: computer, Player 2: human
+     * @return current player
+     */
+
+    public int getPlayer(){
+        return player;
+    }
 
     /**
      * Method to create new game
@@ -66,7 +152,7 @@ public class Game implements IModel{
 
     /**
      * Generates random play move played by computer
-     * @return Mov.of(position, direction) : position of chosen field on the board and its played direction
+     * @return Move.of(position, direction) : position of chosen field on the board and its played direction
      */
     public Move randomMove() {
         assert !isEndgame():"Game is over!";
@@ -80,8 +166,8 @@ public class Game implements IModel{
             direction = direction_list.get(r.nextInt(direction_list.size()));
             stones_picked = board[position];} while (stones_picked == 0);
         //player = (int) player_list.get(0); //Spieler = 1 (AI)
-        assert stones_picked != 0: "No stones to choose";
-        assert position != 0 && position != 6 : "Not allowed to choose ";
+        //assert stones_picked != 0: "No stones to choose";
+        //assert position != 0 && position != 6 : "Not allowed to choose ";
 
         System.out.println("Position :" + position);
         System.out.println("Direction:" + direction);
@@ -127,60 +213,65 @@ public class Game implements IModel{
     public Game play(Move m){
         int position = m.position;
         int direction = m.direction;
+        //List which contains all states of board during this move
         List<int[]> boardList = new ArrayList<>();
 
+        //New game object is created
         Game g = Game.of(board,copy_boardlist,human_score,AI_score,player);
-
-
         //System.out.println("player number:" + g.player);
 
-        //int[] board = Arrays.copyOf(board, 12); //neues Spielbrett Array für die aktuellen erzeugen
-        int score_turn = 0; //Score von diesem Zug
-        int stones_picked = board[position];//Anzahl von den Steinen der ausgewählten Quadrate
+        int score_turn = 0; //Score of this turn
+        int stones_picked = board[position];//Number of stones in the selected squares
         assert stones_picked != 0 : "No stones to play!";
 
-        board[position] = 0; // Anzahl der Steine von der ausgewählten Quadrat ist 0 , nachdem die Steine aufgehoben wurden
+        //Number of stones from the selected square is 0 after the stones have been picked up
+        board[position] = 0;
         tem_board = Arrays.copyOf(board,12);
-
+        //add the copied state of the board into the list
         boardList.add(tem_board);
         //System.out.println(Arrays.toString(tem_board));
 
+        // if lose_turn is true, the player loses the turn
+        boolean loses_turn = false;
 
-        boolean loses_turn = false; //lose turn after eating
-        // wenn lose_turn true ist, verliert der Spieler den Zug
+        //when the player has not lost turn yet
         while (!loses_turn) {
+            //when there are still stones to scatter
             while (stones_picked > 0) {
-                //board[position] = 0;
+                //position is changed according to the direction of scattering
                 position += direction;
+                //position is changed in case it is out of range
                 position = change_position(position);
+                //one stones on the hand is reduced after scattering on a square
                 stones_picked -= 1;
+                //number of stones on the square which is scattered is increased by 1
                 board[position] += 1;
-                tem_board = Arrays.copyOf(board,12);
 
+                tem_board = Arrays.copyOf(board,12);
                 boardList.add(tem_board);
                 //System.out.println(Arrays.toString(tem_board));
             }
-            if (stones_picked == 0) { //wenn alle Steine des ausgewählten Quadrats gestreut sind
-                int next_position = position + direction;  //Position des nächsten Quadrats
+            if (stones_picked == 0) { //when all stones of the selected square are scattered
+                int next_position = position + direction;  //Position of the next square
                 next_position = change_position(next_position);
-                int next_next_position = next_position + direction;
+                int next_next_position = next_position + direction;//Position of the next after next square
                 next_next_position = change_position(next_next_position);
-                //der Fall, wenn der Spieler denn Zug verliert
+                //the case if the player loses the move
                 if (lose_turn(board,position,direction)) {
                     break ;
                 }
 
-                // der Fall, wenn der Spieler Steine zu sich gewinnt
+                // the case when the player wins stones to himself
                 while (board[next_position] == 0 && board[next_next_position] > 0) {
                     score_turn += board[next_next_position];
                     board[next_next_position] = 0;
-                    //tem_board = board; doesnt work (list returns all last elements, has to be Arrays.copy)
+                    //tem_board = board; doesn't work (list returns all last elements, has to be Arrays.copy)
                     tem_board = Arrays.copyOf(board,12);
 
                     boardList.add(tem_board);
                     //System.out.println(Arrays.toString(tem_board));
                     position = next_next_position;
-                    //weiter checken, ob das nächste Quadrat leer ist, sonst verliert man der Zug
+                    //keep checking whether the next square is empty, otherwise player loses the move
                     int t = position + direction;
                     t = change_position(t);
                     if (board[t] > 0 || lose_turn(board,position,direction) ) {
@@ -188,7 +279,7 @@ public class Game implements IModel{
                         break;
                     }
                 }
-                // der Fall, wenn es in dem nächsten Quadrat wieder Steine gibt, dann werden diese Steine weiter gestreut.
+                // the case if there are stones again in the next square, then these stones are scattered further.
                 if (board[next_position] > 0) {
                     stones_picked = board[next_position];
                     board[next_position] = 0;
@@ -232,15 +323,10 @@ public class Game implements IModel{
 
          */
 
+
         change_player(g,score_turn);
 
-
-
         //update_score(g.board,g.player,g.AI_score,g.human_score,score_turn);
-
-
-
-
         System.out.println("Player 2 score: "+ g.human_score);
         System.out.println("Player 1 score: " + g.AI_score);
         System.out.println("Score turn :" + score_turn);
@@ -248,8 +334,15 @@ public class Game implements IModel{
         //System.out.println("New player : " + g.player);
         stones_over(g,board,g.player);
 
+        player = g.player;
+        AI_score = g.AI_score;
+        human_score = g.human_score;
+
+        //add the boardlist list (all board states of this move) to the copy_boardlist
         copy_boardlist.addAll(boardList);
         copy_boardlist.add(board);
+
+        //delete all elements in the list of this move
         boardList.clear();
 
 
@@ -264,14 +357,14 @@ public class Game implements IModel{
      */
 
     public void change_player(Game g, int score_turn){
-        if (player == 1) {
+        if (g.player == 1) {
             g.AI_score += score_turn ;
             g.player = 2;
-
         }
-        else if (player == 2) {
+        else if (g.player == 2) {
             g.human_score += score_turn ;
             g.player = 1;
+
 
         }
 
@@ -296,10 +389,12 @@ public class Game implements IModel{
     }
 
 
-
     /**
-     * Scatter the stones from player's own bank on the game board, 1 stone per square
-     * When there are no more stones for the player to play on their side
+     *  Scatter the stones from player's own bank on the game board, 1 stone per square
+     *  when there are no more stones for the player to play on their side
+     * @param g game Object
+     * @param b current board
+     * @param player current player
      */
 
 
@@ -323,8 +418,8 @@ public class Game implements IModel{
     }
 
     /**
-     * Text representation of the current game state
-     * @return
+     * Text representation of the current game board
+     * @return board
      */
 
     @Override

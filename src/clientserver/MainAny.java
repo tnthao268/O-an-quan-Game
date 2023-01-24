@@ -1,3 +1,16 @@
+/**
+ * @author Ngoc Thao Tran
+ * @since jdk-version 19.0
+ * @version 1.0
+ * @see clientserver
+ * @see controller.GameController
+ * @see model.Game
+ * @see model.IModel
+ * @see view.GameView
+ * @see processing.core.PApplet
+ */
+
+
 package clientserver;
 
 import controller.GameController;
