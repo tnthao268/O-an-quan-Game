@@ -46,6 +46,11 @@ import java.util.List;
 public class GameView extends PApplet implements IView {
 
     /**
+     * Standard constructor
+     */
+    public GameView(){};
+
+    /**
      * IController object
      */
     private IController controller;
@@ -254,6 +259,9 @@ public class GameView extends PApplet implements IView {
      * Two big stones on the sides of the board are created
      */
     Big_stone s1 = new Big_stone(arc_x-30,arc_y+80,30,50);
+    /**
+     * Two big stones on the sides of the board are created
+     */
     Big_stone s2= new Big_stone(arc_x+rect_width+30,arc_y-60,30,50);
 
     /**
@@ -300,14 +308,11 @@ public class GameView extends PApplet implements IView {
                     draw_set_up = false;
                 }
 
-
                 end_human_turn();
-
                 controller.return_draw_score();
 
                 controller.return_which_turn();
-
-                    //System.out.println("Board is " + Arrays.toString(game.getBoard()));
+                //System.out.println("Board is " + Arrays.toString(game.getBoard()));
 
                 controller.return_win();
 
@@ -355,7 +360,7 @@ public class GameView extends PApplet implements IView {
 
 
                     if (chose_left) {
-                        if (controller.is_empty_field()) {
+                        if (!controller.is_empty_field()) {
                             controller.save_human_move_left();
 
                             System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, 1).position + "Direction" + direction);
@@ -375,7 +380,7 @@ public class GameView extends PApplet implements IView {
                         }
                     }
                     if (chose_right) {
-                        if (controller.is_empty_field()) {
+                        if (!controller.is_empty_field()) {
                             controller.save_human_move_right();
                             System.out.println("Pos = " + Move.of(i + (5 - i) * 2 + 1, -1).position + "Dir = " + direction);
                             human_turn = false;
@@ -476,6 +481,7 @@ public class GameView extends PApplet implements IView {
      * Draw the number of stones on each field.
      * @param board current state of the board
      * @param i position on the board
+     * @param up return true if the side of the board is computer's ,false otherwise
      */
 
     private void draw_number_stones(int [] board, int i, boolean up){
@@ -562,7 +568,7 @@ public class GameView extends PApplet implements IView {
                 //Steine zeigen
                 new Stone(stone_5, arc_x - dist / 2 + dist * i, rect_y + dist / 2 - 10).display(g);
                 new Stone(stone_5, arc_x - dist / 2 + dist * i, rect_y + dist / 2 * 3 - 30).display(g);
-                fill(255);
+                fill(0);
                 textSize(30);
                 //fill(color_right_arrow);
                 text(String.valueOf(s_stone), arc_x + dist * (i - 1) + 10, arc_y + 30);
@@ -600,7 +606,7 @@ public class GameView extends PApplet implements IView {
             if(!human_turn) {
                 //state.board = controller.getGame().getBoard();
                 controller.return_draw_step_stones();
-                System.out.println("Drew");
+                //System.out.println("Drew");
             }
     }
 

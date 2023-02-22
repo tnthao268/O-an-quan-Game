@@ -13,10 +13,17 @@ package model;
  */
 
 public class Run_game {
+
+    /**
+     * Standard constructor
+     */
+    public Run_game(){};
     /**
      * Runs the game
      * @param args arguments
      */
+
+
     public static void main(String[] args){
         IModel g = Game.newGame();
         while (!g.isEndgame()){

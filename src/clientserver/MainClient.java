@@ -25,6 +25,14 @@ import processing.core.PApplet;
  */
 
 public abstract class MainClient {
+    /**
+     * Standard constructor
+     */
+    public MainClient(){};
+    /**
+     * Main method
+     * @param args String arguments
+     */
         public static void main(String[] args) {
             IModel model = Game.newGame();
             var controller = new GameController(model);

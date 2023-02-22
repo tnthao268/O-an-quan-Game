@@ -1,4 +1,4 @@
-/**
+package main; /**
  * @author Ngoc Thao Tran
  * @since jdk-version 19.0
  * @version 1.0
@@ -9,17 +9,28 @@
  * @see processing.core.PApplet
  */
 
+
 import controller.GameController;
 import model.Game;
 import model.IModel;
-import view.GameView;
 import processing.core.PApplet;
+import view.GameView;
 
 /**
- * Class to run the whole game application
+ * Class to run the whole game application.
  * Where model,controller and view instances are created
  */
+
 public abstract class Main {
+
+    /**
+     * Standard constructor
+     */
+    public Main(){};
+    /**
+     * Main method
+     * @param args String arguments
+     */
     public static void main(String[] args){
 
         IModel model = Game.newGame();

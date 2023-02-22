@@ -31,6 +31,10 @@ import java.util.List;
  */
 
 class GameTest {
+    /**
+     * Standard constructor
+     */
+    public GameTest(){};
 
     /**
      * List to save states of the boards in each move
@@ -186,11 +190,11 @@ class GameTest {
         assertEquals(game3c.getAI_score(),3);
 
         //check if player's move ends when reaching 2 next empty fields
-        var game3 = Game.of(new int[]{0, 1, 0 , 0 , 2 , 0, 1, 1, 0, 2, 0, 0}, boardlist,0, 0, 2);
+        var game3 = Game.of(new int[]{0, 1, 0 , 0 , 0 , 1, 1, 1, 0, 2, 0, 0}, boardlist,0, 0, 2);
 
-        var game3a = game3.play(Move.of(6,1));
-        assertArrayEquals(game3a.getBoard(),new int[] {0, 1, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0});
-        assertEquals(game3a.getHuman_score(),2);
+        var game3a = game3.play(Move.of(1,1));
+        assertArrayEquals(game3a.getBoard(),new int[] {0, 0, 1, 0, 0, 1, 1, 1, 0, 2, 0, 0});
+        assertEquals(game3a.getHuman_score(),0);
 
         //check if the rule of winning is applied for big field as well
         var game4 = Game.of(new int[]{0, 1, 0 , 2 , 0 , 2, 0, 2, 0, 0, 1, 0}, boardlist,0, 0, 2);
@@ -205,7 +209,15 @@ class GameTest {
         var game6_played = game6.play(Move.of(4,-1));
         assertArrayEquals(game6_played.getBoard(),new int[] {5, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1}); //after scattering 5 stones on each of 5 fields
 
+        //test that user is not allowed to play king field
 
+        var game7 = Game.of(new int[]{5, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0}, boardlist,10, 10, 1);
+
+        assertArrayEquals(game7.play(Move.of(6,1)).getBoard(),new int[]{5, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0});
+        assertArrayEquals(game7.play(Move.of(0,1)).getBoard(),new int[]{5, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0});
+
+        //test that user is not allowed to choose field without stones
+        assertArrayEquals(game7.play(Move.of(1,1)).getBoard(),new int[]{5, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0});
     }
 
     /**

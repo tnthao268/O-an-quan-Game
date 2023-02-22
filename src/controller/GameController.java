@@ -127,7 +127,7 @@ public class GameController implements IController{
      */
 
     public boolean is_empty_field(){
-        return !view.field_is_empty(game);
+        return view.field_is_empty(game);
     }
 
     /**

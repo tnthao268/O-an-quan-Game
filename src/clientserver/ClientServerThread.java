@@ -82,6 +82,7 @@ public class ClientServerThread extends Thread {
      * Constructor for a server thread.
      * @param port      Port to use for the socket
      * @param view      Object for callbacks
+     * @return thread as server
      */
     public static ClientServerThread newServer(int port, GameView view) {
         var cst = new ClientServerThread(view, "localhost", port);
@@ -101,6 +102,7 @@ public class ClientServerThread extends Thread {
      * @param ip        IP to connect to
      * @param port      Port to connect to
      * @param view     Object for callbacks
+     * @return thread as client
      */
     public static ClientServerThread newClient(String ip, int port, GameView view) {
         var cst = new ClientServerThread(view, ip, port);
@@ -121,6 +123,7 @@ public class ClientServerThread extends Thread {
      * @param ip        IP to connect to
      * @param port      Port to connect to
      * @param view     Object for callbacks
+     * @return thread
      */
     public static ClientServerThread newAny(String ip, int port, GameView view) {
         var cst = new ClientServerThread(view, ip, port);

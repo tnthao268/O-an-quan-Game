@@ -85,7 +85,7 @@ public class Game implements IModel{
      * @param human_score human player's score (score of player 2)
      * @param AI_score computer's score (score of player 1)
      * @param player the player who plays first
-     *
+     * @return new Game object
      */
     public static Game of(int[] board,  List<int[]> copy_boardlist, int human_score, int AI_score, int player) {
         return new Game(board, copy_boardlist, human_score, AI_score, player);
@@ -177,7 +177,7 @@ public class Game implements IModel{
     }
 
     /**
-     * Changes position of the board when it is out of range (< 0 or > 11 )
+     * Changes position of the board when it is out of range
      * @param position current played position on the board
      * @return new changed position
      */
@@ -222,75 +222,76 @@ public class Game implements IModel{
 
         int score_turn = 0; //Score of this turn
         int stones_picked = board[position];//Number of stones in the selected squares
-        assert stones_picked != 0 : "No stones to play!";
+        //assert stones_picked != 0 : "No stones to play!";
+        if (position != 0 && position != 6) {
+           //Number of stones from the selected square is 0 after the stones have been picked up
+            board[position] = 0;
+            tem_board = Arrays.copyOf(board,12);
+             //add the copied state of the board into the list
+            boardList.add(tem_board);
+            //System.out.println(Arrays.toString(tem_board));
 
-        //Number of stones from the selected square is 0 after the stones have been picked up
-        board[position] = 0;
-        tem_board = Arrays.copyOf(board,12);
-        //add the copied state of the board into the list
-        boardList.add(tem_board);
-        //System.out.println(Arrays.toString(tem_board));
+             // if lose_turn is true, the player loses the turn
+            boolean loses_turn = false;
 
-        // if lose_turn is true, the player loses the turn
-        boolean loses_turn = false;
+            if (stones_picked > 0) {
+                //when the player has not lost turn yet
+                while (!loses_turn) {
+                    //when there are still stones to scatter
+                    while (stones_picked > 0) {
+                        //position is changed according to the direction of scattering
+                        position += direction;
+                        //position is changed in case it is out of range
+                        position = change_position(position);
+                        //one stones on the hand is reduced after scattering on a square
+                        stones_picked -= 1;
+                        //number of stones on the square which is scattered is increased by 1
+                        board[position] += 1;
 
-        //when the player has not lost turn yet
-        while (!loses_turn) {
-            //when there are still stones to scatter
-            while (stones_picked > 0) {
-                //position is changed according to the direction of scattering
-                position += direction;
-                //position is changed in case it is out of range
-                position = change_position(position);
-                //one stones on the hand is reduced after scattering on a square
-                stones_picked -= 1;
-                //number of stones on the square which is scattered is increased by 1
-                board[position] += 1;
+                        tem_board = Arrays.copyOf(board, 12);
+                        boardList.add(tem_board);
+                        //System.out.println(Arrays.toString(tem_board));
+                    }
+                    if (stones_picked == 0) { //when all stones of the selected square are scattered
+                        int next_position = position + direction;  //Position of the next square
+                        next_position = change_position(next_position);
+                        int next_next_position = next_position + direction;//Position of the next after next square
+                        next_next_position = change_position(next_next_position);
+                        //the case if the player loses the move
+                        if (lose_turn(board, position, direction)) {
+                            break;
+                        }
 
-                tem_board = Arrays.copyOf(board,12);
-                boardList.add(tem_board);
-                //System.out.println(Arrays.toString(tem_board));
-            }
-            if (stones_picked == 0) { //when all stones of the selected square are scattered
-                int next_position = position + direction;  //Position of the next square
-                next_position = change_position(next_position);
-                int next_next_position = next_position + direction;//Position of the next after next square
-                next_next_position = change_position(next_next_position);
-                //the case if the player loses the move
-                if (lose_turn(board,position,direction)) {
-                    break ;
-                }
+                        // the case when the player wins stones to himself
+                        while (board[next_position] == 0 && board[next_next_position] > 0) {
+                            score_turn += board[next_next_position];
+                            board[next_next_position] = 0;
+                            //tem_board = board; doesn't work (list returns all last elements, has to be Arrays.copy)
+                            tem_board = Arrays.copyOf(board, 12);
 
-                // the case when the player wins stones to himself
-                while (board[next_position] == 0 && board[next_next_position] > 0) {
-                    score_turn += board[next_next_position];
-                    board[next_next_position] = 0;
-                    //tem_board = board; doesn't work (list returns all last elements, has to be Arrays.copy)
-                    tem_board = Arrays.copyOf(board,12);
+                            boardList.add(tem_board);
+                            //System.out.println(Arrays.toString(tem_board));
+                            position = next_next_position;
+                            //keep checking whether the next square is empty, otherwise player loses the move
+                            int t = position + direction;
+                            t = change_position(t);
+                            if (board[t] > 0 || lose_turn(board, position, direction)) {
+                                loses_turn = true;
+                                break;
+                            }
+                        }
+                        // the case if there are stones again in the next square, then these stones are scattered further.
+                        if (board[next_position] > 0) {
+                            stones_picked = board[next_position];
+                            board[next_position] = 0;
+                            tem_board = Arrays.copyOf(board, 12);
 
-                    boardList.add(tem_board);
-                    //System.out.println(Arrays.toString(tem_board));
-                    position = next_next_position;
-                    //keep checking whether the next square is empty, otherwise player loses the move
-                    int t = position + direction;
-                    t = change_position(t);
-                    if (board[t] > 0 || lose_turn(board,position,direction) ) {
-                        loses_turn = true;
-                        break;
+                            boardList.add(tem_board);
+                            //System.out.println(Arrays.toString(tem_board));
+                            position = next_position;
+                        }
                     }
                 }
-                // the case if there are stones again in the next square, then these stones are scattered further.
-                if (board[next_position] > 0) {
-                    stones_picked = board[next_position];
-                    board[next_position] = 0;
-                    tem_board = Arrays.copyOf(board,12);
-
-                    boardList.add(tem_board);
-                    //System.out.println(Arrays.toString(tem_board));
-                    position = next_position;
-                }
-            }
-        }
 
         /*
         for (int[] a: boardList) {
@@ -300,13 +301,13 @@ public class Game implements IModel{
          */
 
 
-        System.out.println(Arrays.toString(board));
+                System.out.println(Arrays.toString(board));
 
-        //System.out.println(Arrays.toString(boardList.toArray()));
+                //System.out.println(Arrays.toString(boardList.toArray()));
 
-        System.out.println("player:" + g.player);
+                System.out.println("player:" + g.player);
 
-        //(check_stones_over(2, board) ? (AI_score- 5) : AI_score)
+                //(check_stones_over(2, board) ? (AI_score- 5) : AI_score)
 
 
         /*
@@ -324,30 +325,33 @@ public class Game implements IModel{
          */
 
 
-        change_player(g,score_turn);
+                change_player(g, score_turn);
 
-        //update_score(g.board,g.player,g.AI_score,g.human_score,score_turn);
-        System.out.println("Player 2 score: "+ g.human_score);
-        System.out.println("Player 1 score: " + g.AI_score);
-        System.out.println("Score turn :" + score_turn);
+                //update_score(g.board,g.player,g.AI_score,g.human_score,score_turn);
+                System.out.println("Player 2 score: " + g.human_score);
+                System.out.println("Player 1 score: " + g.AI_score);
+                System.out.println("Score turn :" + score_turn);
 
-        //System.out.println("New player : " + g.player);
-        stones_over(g,board,g.player);
+                //System.out.println("New player : " + g.player);
+                stones_over(g, board, g.player);
 
-        player = g.player;
-        AI_score = g.AI_score;
-        human_score = g.human_score;
+                player = g.player;
+                AI_score = g.AI_score;
+                human_score = g.human_score;
 
-        //add the boardlist list (all board states of this move) to the copy_boardlist
-        copy_boardlist.addAll(boardList);
-        copy_boardlist.add(board);
+                //add the boardlist list (all board states of this move) to the copy_boardlist
+                copy_boardlist.addAll(boardList);
+                copy_boardlist.add(board);
 
-        //delete all elements in the list of this move
-        boardList.clear();
-
-
+                //delete all elements in the list of this move
+                boardList.clear();
+            } else if (stones_picked == 0) {
+                System.out.println("This field has no stones to play ");
+            }
+        } else {
+            System.out.println("It is not allowed to play king fields.");
+        }
         return g;
-
     }
 
     /**
@@ -427,9 +431,6 @@ public class Game implements IModel{
         //return String.format("Board %s", Arrays.toString(board));
         return "Board: " + Arrays.toString(board) ;
     }
-
-
-
 }
 
 

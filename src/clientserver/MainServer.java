@@ -23,6 +23,15 @@ import processing.core.PApplet;
  * To start server thread. Server needs to start first in order for both server and client threads to run
  */
 public abstract class MainServer {
+
+    /**
+     * Standard constructor
+     */
+    public MainServer(){};
+    /**
+     * Main method
+     * @param args String arguments
+     */
     public static void main(String[] args) {
 
         IModel model = Game.newGame();

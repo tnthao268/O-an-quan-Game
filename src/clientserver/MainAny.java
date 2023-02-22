@@ -26,7 +26,18 @@ import processing.core.PApplet;
  * - start two MainAny --> The first is a server, the second a client
  */
 public abstract class MainAny {
+    /**
+     * Standard constructor
+     */
+    public MainAny(){};
+    /**
+     * Main method
+     * @param args String arguments
+     */
     public static void main(String[] args) {
+
+
+
         IModel model = Game.newGame();
         var controller = new GameController(model);
 
